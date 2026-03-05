@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#08111f">
+<title>Mountain Dashboard · dashboard.westech.com.hk</title>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:        #08111f;
+  --surface:   rgba(255,255,255,0.055);
+  --border:    rgba(255,255,255,0.10);
+  --text:      #dde6f7;
+  --muted:     #6b7a99;
+  --radius:    18px;
+  --gap:       13px;
+
+  /* Accents per page — overridden per-page */
+  --accent:    #3d9be9;
+  --accent2:   #5bc4ff;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════
+   SWIPE CONTAINER
+═══════════════════════════════════════════ */
+#stage {
+  display: flex;
+  width: 300vw;
+  height: 100vh;
+  will-change: transform;
+  transition: transform .42s cubic-bezier(.25,.46,.45,.94);
+}
+.page {
+  width: 100vw;
+  height: 100vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 72px;
+  scroll-behavior: smooth;
+}
+.page::-webkit-scrollbar { display: none; }
+
+/* Page backgrounds */
+#p0 { background: radial-gradient(ellipse 80% 50% at 15% 10%, #0d2040 0%, var(--bg) 65%); }
+#p1 { background: radial-gradient(ellipse 80% 50% at 15% 10%, #072d15 0%, var(--bg) 65%); }
+#p2 { background: radial-gradient(ellipse 80% 50% at 15% 10%, #2a1500 0%, var(--bg) 65%); }
+
+/* ═══════════════════════════════════════════
+   PAGE INDICATOR DOTS
+═══════════════════════════════════════════ */
+#dots {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 8px;
+  z-index: 200;
+}
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.25);
+  cursor: pointer;
+  transition: all .3s;
+}
+.dot.on { background: #fff; width: 22px; }
+
+/* ═══════════════════════════════════════════
+   PAGE HEADER
+═══════════════════════════════════════════ */
+.hdr {
+  padding: 50px 16px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.hdr-left .loc { font-size: 21px; font-weight: 750; letter-spacing: -.4px; }
+.hdr-left .sub { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.hdr-right { text-align: right; flex-shrink: 0; margin-left: 12px; }
+.hdr-right .ts { font-size: 10.5px; color: var(--muted); }
+.refresh-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 5px; padding: 5px 11px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 11px; color: var(--text);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background .2s;
+}
+.refresh-btn:active { background: rgba(255,255,255,.12); }
+
+/* ═══════════════════════════════════════════
+   GRID
+═══════════════════════════════════════════ */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  padding: 0 var(--gap) var(--gap);
+}
+.full { grid-column: 1 / -1; }
+.third { /* 3-col row */ }
+
+/* ═══════════════════════════════════════════
+   CARD
+═══════════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 15px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2.5px;
+  background: var(--accent);
+  border-radius: var(--radius) var(--radius) 0 0;
+  opacity: .85;
+}
+.card-label {
+  font-size: 10.5px; font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase; letter-spacing: .9px;
+  margin-bottom: 10px;
+}
+.big-num {
+  font-size: 44px; font-weight: 800;
+  line-height: 1; letter-spacing: -2px;
+}
+.med-num {
+  font-size: 26px; font-weight: 700;
+  line-height: 1.1;
+}
+.unit { font-size: 16px; font-weight: 400; color: var(--muted); margin-left: 1px; }
+.sub  { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+
+/* Progress bar */
+.bar-track {
+  height: 5px;
+  background: rgba(255,255,255,.08);
+  border-radius: 3px;
+  margin-top: 9px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 1.2s ease;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px; font-weight: 600;
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+}
+
+/* ═══════════════════════════════════════════
+   HERO CARD
+═══════════════════════════════════════════ */
+.hero { padding: 18px; }
+.hero-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero-left {}
+.hero-temp-row { display: flex; align-items: flex-end; gap: 4px; }
+.hero-temp { font-size: 80px; font-weight: 800; letter-spacing: -5px; line-height: 1; }
+.hero-unit { font-size: 28px; font-weight: 400; color: var(--muted); margin-bottom: 10px; }
+.hero-icon { font-size: 66px; line-height: 1; filter: drop-shadow(0 0 12px rgba(255,200,50,.3)); }
+.hero-desc { font-size: 15px; color: var(--muted); margin-top: 6px; }
+.hero-feel { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.hero-hl { display: flex; gap: 14px; margin-top: 8px; font-size: 15px; font-weight: 600; }
+.hi { color: #ff9a6c; } .lo { color: #a0c4f8; }
+.src-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.pill {
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 10px; font-weight: 600;
+  background: rgba(255,255,255,.07); color: var(--muted);
+}
+.pill.diff { background: rgba(255,200,50,.15); color: #ffc84a; }
+.pill.src1 { background: rgba(61,155,233,.15); color: #6ec6ff; }
+.pill.src2 { background: rgba(100,220,160,.15); color: #6fe0b0; }
+
+/* ═══════════════════════════════════════════
+   COMPASS
+═══════════════════════════════════════════ */
+.compass-wrap { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.compass {
+  position: relative; width: 52px; height: 52px; flex-shrink: 0;
+}
+.compass svg { width: 52px; height: 52px; }
+
+/* ═══════════════════════════════════════════
+   SUN ARC
+═══════════════════════════════════════════ */
+.sun-wrap { position: relative; margin-top: 6px; }
+.sun-wrap svg { width: 100%; display: block; overflow: visible; }
+.sun-labels {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ═══════════════════════════════════════════
+   MULTI-SOURCE TABLE
+═══════════════════════════════════════════ */
+.src-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 11.5px; margin-top: 8px;
+}
+.src-table th {
+  color: var(--muted); text-align: left;
+  padding: 4px 6px; font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.src-table td { padding: 5px 6px; }
+.src-table tr.avg td { color: #ffc84a; font-weight: 700; }
+.src-table tr:not(:last-child) td { border-bottom: 1px solid rgba(255,255,255,.04); }
+
+/* ═══════════════════════════════════════════
+   HOURLY SCROLL
+═══════════════════════════════════════════ */
+.hourly-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.hourly-wrap::-webkit-scrollbar { display: none; }
+.hourly-row { display: flex; gap: 6px; width: max-content; padding: 2px 0; }
+.h-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; min-width: 58px;
+  padding: 8px 4px;
+  background: rgba(255,255,255,.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.h-item.now { background: rgba(255,255,255,.09); border-color: var(--accent); }
+.h-time { font-size: 10.5px; color: var(--muted); }
+.h-icon { font-size: 24px; }
+.h-temp { font-size: 14px; font-weight: 700; }
+.h-snow { font-size: 10px; color: #a0c4f8; }
+
+/* Mini bar chart below hourly */
+.mini-chart {
+  display: flex; gap: 6px; align-items: flex-end;
+  height: 36px; margin-top: 8px;
+  width: max-content;
+}
+.mc-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 58px; gap: 1px; }
+.mc-rain { background: rgba(61,155,233,.6); border-radius: 2px 2px 0 0; width: 18px; }
+.mc-snow { background: rgba(180,210,255,.7); border-radius: 2px 2px 0 0; width: 18px; }
+
+/* ═══════════════════════════════════════════
+   7-DAY FORECAST
+═══════════════════════════════════════════ */
+.fc-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.fc-row:last-child { border-bottom: none; }
+.fc-day  { font-size: 13px; font-weight: 600; min-width: 38px; }
+.fc-icon { font-size: 22px; min-width: 30px; text-align: center; }
+.fc-desc { font-size: 12px; color: var(--muted); flex: 1; }
+.fc-snow { font-size: 11px; color: #a0c4f8; min-width: 40px; text-align: right; }
+.fc-range { display: flex; align-items: center; gap: 6px; min-width: 100px; }
+.fc-lo { font-size: 13px; color: #a0c4f8; font-weight: 600; min-width: 30px; text-align: right; }
+.fc-hi { font-size: 13px; color: #ff9a6c; font-weight: 600; min-width: 30px; }
+.fc-bar { flex: 1; height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; }
+.fc-bar-inner { height: 3px; border-radius: 2px; background: linear-gradient(90deg, #a0c4f8, #ff9a6c); width: 100%; }
+
+/* ═══════════════════════════════════════════
+   SKI REPORT CARD
+═══════════════════════════════════════════ */
+.ski-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px; margin: 10px 0;
+}
+.sstat {
+  background: rgba(255,255,255,.04);
+  border-radius: 12px; padding: 10px 6px;
+  text-align: center;
+}
+.sstat-val { font-size: 22px; font-weight: 800; line-height: 1; }
+.sstat-lbl { font-size: 9px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+
+.lift-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  font-size: 13px;
+}
+.lift-item:last-child { border-bottom: none; }
+.lift-badge {
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+}
+.open-badge   { background: rgba(67,201,140,.18); color: #43c98c; }
+.closed-badge { background: rgba(255,107,107,.18); color: #ff6b6b; }
+
+/* ═══════════════════════════════════════════
+   LENS RECOMMENDATION
+═══════════════════════════════════════════ */
+.lens-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 7px; margin-top: 12px;
+}
+.lens-pill {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px; padding: 10px 4px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid transparent;
+  transition: all .35s;
+  cursor: default;
+}
+.lens-pill.pick {
+  background: rgba(255,193,50,.12);
+  border-color: rgba(255,193,50,.5);
+  box-shadow: 0 0 16px rgba(255,193,50,.15);
+}
+.lens-pill.alt {
+  background: rgba(61,155,233,.1);
+  border-color: rgba(61,155,233,.35);
+}
+.lens-eye {
+  width: 36px; height: 22px; border-radius: 30px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.lens-vlt { font-size: 13px; font-weight: 800; }
+.lens-name { font-size: 8.5px; color: var(--muted); text-align: center; line-height: 1.3; }
+.lens-grade { font-size: 9px; color: var(--muted); }
+
+.lens-reasoning {
+  margin-top: 10px; padding: 10px 12px;
+  background: rgba(255,193,50,.07);
+  border-radius: 12px;
+  font-size: 11.5px; line-height: 1.65;
+  color: var(--text);
+}
+.lens-reasoning strong { color: #ffc84a; }
+
+/* ═══════════════════════════════════════════
+   LOADING OVERLAY
+═══════════════════════════════════════════ */
+.spin {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,.12);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: rot .7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+.loading-temp {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 16px; color: var(--muted);
+  padding: 10px 0;
+}
+
+/* ═══════════════════════════════════════════
+   VERSION FOOTER
+═══════════════════════════════════════════ */
+.vfooter {
+  font-size: 10px; color: var(--muted);
+  text-align: center;
+  padding: 8px 16px 0;
+  line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════════
+   3-COLUMN HELPER
+═══════════════════════════════════════════ */
+.grid3 {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--gap);
+}
+.grid3 .card::before { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ╔═══════════════════════════════════════╗
+     ║  SWIPE STAGE                         ║
+     ╚═══════════════════════════════════════╝ -->
+<div id="stage">
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     PAGE 0 · CALGARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page" id="p0" style="--accent:#3d9be9;--accent2:#6ec6ff;">
+
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="loc">🏙 Calgary</div>
+      <div class="sub">Alberta · 1,045 m · 51.04°N 114.07°W</div>
+    </div>
+    <div class="hdr-right">
+      <div class="ts" id="ts0">—</div>
+      <div class="refresh-btn" onclick="loadAll()">↻ 更新全部</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- HERO -->
+    <div class="card hero full" id="c0-hero">
+      <div class="card-label">當前天氣</div>
+      <div class="hero-row">
+        <div class="hero-left">
+          <div class="hero-temp-row">
+            <div class="hero-temp" id="c0-temp">—</div>
+            <div class="hero-unit">°C</div>
+          </div>
+          <div class="hero-desc" id="c0-desc">載入中…</div>
+          <div class="hero-feel" id="c0-feel"></div>
+          <div class="hero-hl">
+            <span class="hi" id="c0-hi"></span>
+            <span class="lo" id="c0-lo"></span>
+          </div>
+        </div>
+        <div class="hero-icon" id="c0-icon">⟳</div>
+      </div>
+      <div class="src-pills" id="c0-pills"></div>
+    </div>
+
+    <!-- HUMIDITY -->
+    <div class="card" style="--accent:#3da8e9;">
+      <div class="card-label">💧 濕度</div>
+      <div class="med-num" id="c0-hum">—<span class="unit">%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="c0-hum-bar" style="width:0%"></div></div>
+      <div class="sub" id="c0-dew">露點 —°C</div>
+    </div>
+
+    <!-- UV -->
+    <div class="card" style="--accent:#e9c83d;">
+      <div class="card-label">☀️ 紫外線</div>
+      <div class="med-num" id="c0-uv">—</div>
+      <div class="sub" id="c0-uv-lbl">等級 —</div>
+      <div class="sub" id="c0-solar">輻射 — W/m²</div>
+    </div>
+
+    <!-- WIND -->
+    <div class="card" style="--accent:#9b64e9;">
+      <div class="card-label">💨 風速</div>
+      <div class="med-num" id="c0-wind">—<span class="unit">km/h</span></div>
+      <div class="compass-wrap">
+        <div class="compass" id="c0-cmp">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
+            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
+            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
+            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
+            <line id="c0-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
+            <line id="c0-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
+          </svg>
+        </div>
+        <div>
+          <div class="sub" id="c0-wdir" style="margin:0">— (—°)</div>
+          <div class="sub" id="c0-gust" style="margin-top:3px">陣風 —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRECIP -->
+    <div class="card" style="--accent:#a0c4f8;">
+      <div class="card-label">🌧 降水 / 降雪</div>
+      <div class="med-num" id="c0-prec">—</div>
+      <div class="sub" id="c0-snow">積雪深度 — cm</div>
+      <div class="bar-track"><div class="bar-fill" id="c0-prec-bar" style="width:0%;background:#a0c4f8"></div></div>
+      <div class="sub" id="c0-prob">降水概率 —%</div>
+    </div>
+
+    <!-- PRESSURE + VISIBILITY (2-col row using individual cards) -->
+    <div class="card" style="--accent:#43c9a0;">
+      <div class="card-label">🔵 氣壓</div>
+      <div class="med-num" id="c0-pres">—<span class="unit">hPa</span></div>
+      <div class="sub" id="c0-pres-t">趨勢 —</div>
+    </div>
+    <div class="card" style="--accent:#43c9a0;">
+      <div class="card-label">👁 能見度</div>
+      <div class="med-num" id="c0-vis">—<span class="unit">km</span></div>
+      <div class="sub" id="c0-vis-lbl">—</div>
+    </div>
+
+    <!-- SUN ARC -->
+    <div class="card full" style="--accent:linear-gradient(90deg,#f5a623,#ffd56b);">
+      <div class="card-label">🌅 日出 / 日落</div>
+      <div class="sun-wrap">
+        <svg id="c0-sun-svg" viewBox="0 0 320 72" preserveAspectRatio="none" height="72">
+          <defs>
+            <filter id="sglow">
+              <feGaussianBlur stdDeviation="3" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- horizon line -->
+          <line x1="8" y1="66" x2="312" y2="66" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <!-- arc guide (full) -->
+          <path d="M8,66 Q160,-24 312,66" fill="none" stroke="rgba(255,200,50,.12)" stroke-width="2"/>
+          <!-- arc progress -->
+          <path id="c0-arc" d="M8,66 Q160,-24 312,66" fill="none" stroke="url(#sg)" stroke-width="2.5"
+                stroke-dasharray="360" stroke-dashoffset="360" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#f5a623"/>
+              <stop offset="100%" stop-color="#ffd56b"/>
+            </linearGradient>
+          </defs>
+          <!-- sun dot -->
+          <circle id="c0-sun" cx="8" cy="66" r="9" fill="#ffd56b" filter="url(#sglow)"/>
+        </svg>
+      </div>
+      <div class="sun-labels">
+        <span id="c0-rise">🌄 —:—</span>
+        <span id="c0-set">🌇 —:—</span>
+      </div>
+    </div>
+
+    <!-- MULTI-SOURCE -->
+    <div class="card full" style="--accent:#6b7a99;">
+      <div class="card-label">📡 多來源數據對比</div>
+      <table class="src-table">
+        <thead>
+          <tr>
+            <th>來源</th><th>氣溫 °C</th><th>濕度 %</th><th>風速 km/h</th><th>降水 mm</th>
+          </tr>
+        </thead>
+        <tbody id="c0-src"></tbody>
+      </table>
+    </div>
+
+    <!-- HOURLY -->
+    <div class="card full" style="--accent:#3d9be9;">
+      <div class="card-label">⏱ 未來 24 小時</div>
+      <div class="hourly-wrap">
+        <div class="hourly-row" id="c0-hourly"></div>
+        <div class="mini-chart" id="c0-chart" style="margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <!-- 7-DAY -->
+    <div class="card full" style="--accent:#3d9be9;">
+      <div class="card-label">📅 7 天預測</div>
+      <div id="c0-daily"></div>
+    </div>
+
+    <div class="vfooter full">
+      v1.0.0-alpha · dashboard.westech.com.hk<br>
+      資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /p0 -->
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     PAGE 1 · NAKISKA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page" id="p1" style="--accent:#43c98c;--accent2:#64f6c0;">
+
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="loc" style="color:#43c98c;">⛷ Nakiska Ski Resort</div>
+      <div class="sub">Kananaskis Country · 2,258 m · 50.94°N 115.15°W</div>
+    </div>
+    <div class="hdr-right">
+      <div class="ts" id="ts1">—</div>
+      <div class="refresh-btn" onclick="loadAll()">↻ 更新全部</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- HERO -->
+    <div class="card hero full">
+      <div class="card-label">山頂天氣 · 2,258 m</div>
+      <div class="hero-row">
+        <div class="hero-left">
+          <div class="hero-temp-row">
+            <div class="hero-temp" id="c1-temp">—</div>
+            <div class="hero-unit">°C</div>
+          </div>
+          <div class="hero-desc" id="c1-desc">載入中…</div>
+          <div class="hero-feel" id="c1-feel"></div>
+          <div class="hero-hl">
+            <span class="hi" id="c1-hi"></span>
+            <span class="lo" id="c1-lo"></span>
+          </div>
+        </div>
+        <div class="hero-icon" id="c1-icon">⟳</div>
+      </div>
+      <div class="src-pills" id="c1-pills"></div>
+    </div>
+
+    <!-- HUM -->
+    <div class="card">
+      <div class="card-label">💧 濕度</div>
+      <div class="med-num" id="c1-hum">—<span class="unit">%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="c1-hum-bar" style="width:0%"></div></div>
+      <div class="sub" id="c1-dew">露點 —°C</div>
+    </div>
+
+    <!-- UV -->
+    <div class="card" style="--accent:#e9c83d;">
+      <div class="card-label">☀️ 紫外線</div>
+      <div class="med-num" id="c1-uv">—</div>
+      <div class="sub" id="c1-uv-lbl">等級 —</div>
+      <div class="sub" id="c1-solar">輻射 — W/m²</div>
+    </div>
+
+    <!-- WIND -->
+    <div class="card" style="--accent:#9b64e9;">
+      <div class="card-label">💨 風速</div>
+      <div class="med-num" id="c1-wind">—<span class="unit">km/h</span></div>
+      <div class="compass-wrap">
+        <div class="compass" id="c1-cmp">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
+            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
+            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
+            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
+            <line id="c1-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
+            <line id="c1-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
+          </svg>
+        </div>
+        <div>
+          <div class="sub" id="c1-wdir" style="margin:0">— (—°)</div>
+          <div class="sub" id="c1-gust" style="margin-top:3px">陣風 —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRECIP -->
+    <div class="card" style="--accent:#a0c4f8;">
+      <div class="card-label">🌨 降雪</div>
+      <div class="med-num" id="c1-prec">—</div>
+      <div class="sub" id="c1-snow">積雪 — cm</div>
+      <div class="bar-track"><div class="bar-fill" id="c1-prec-bar" style="width:0%;background:#a0c4f8"></div></div>
+      <div class="sub" id="c1-prob">降雪概率 —%</div>
+    </div>
+
+    <!-- SNOW REPORT -->
+    <div class="card full" style="--accent:#43c98c; border-color:rgba(67,201,140,.25);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div class="card-label" style="margin:0;">🏔 Snow Report</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="badge" style="background:rgba(67,201,140,.15);color:#43c98c;">skinakiska.com</span>
+          <span style="font-size:10px;color:var(--muted);">Mar 5, 2026</span>
+        </div>
+      </div>
+
+      <div class="ski-stats">
+        <div class="sstat">
+          <div class="sstat-val" style="color:#a0c4f8;">117<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">山頂積雪<br>2,260 m</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat-val" style="color:#a0c4f8;">55<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">山腳積雪<br>1,525 m</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat-val" style="color:#43c98c;">+2<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">昨晚<br>新雪</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat-val" style="color:#ffc84a;">166<span style="font-size:13px;font-weight:400;">%</span></div>
+          <div class="sstat-lbl">vs 歷史<br>平均深度</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--muted);margin:8px 0 6px;font-weight:600;letter-spacing:.5px;">🚡 纜椅狀態</div>
+      <div class="lift-item"><span>🟢 Gold Chair</span><span class="lift-badge open-badge">開放 09:00–16:00</span></div>
+      <div class="lift-item"><span>🟢 Silver Chair</span><span class="lift-badge open-badge">開放 09:00–16:00</span></div>
+      <div class="lift-item"><span>🟢 Bronze Chair</span><span class="lift-badge open-badge">開放 09:30–16:00</span></div>
+      <div class="lift-item"><span>🟢 Olympic Chair</span><span class="lift-badge open-badge">開放 09:30–16:00</span></div>
+      <div class="lift-item"><span>🔴 Chiniki Quad</span><span class="lift-badge closed-badge">關閉</span></div>
+      <div class="lift-item"><span>🔴 Kid's World Carpet</span><span class="lift-badge closed-badge">關閉</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;font-size:11.5px;">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:7px 9px;">
+          <div style="color:var(--muted);font-size:9.5px;">開放路線</div>
+          <div style="color:#43c98c;font-weight:700;font-size:16px;margin-top:2px;">72<span style="font-size:11px;color:var(--muted);font-weight:400;">/79</span></div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:7px 9px;">
+          <div style="color:var(--muted);font-size:9.5px;">雪道整備</div>
+          <div style="color:#43c98c;font-weight:700;font-size:16px;margin-top:2px;">23 <span style="font-size:11px;color:var(--muted);font-weight:400;">條</span></div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:7px 9px;">
+          <div style="color:var(--muted);font-size:9.5px;">Fun Park</div>
+          <div style="color:#ff6b6b;font-weight:700;font-size:14px;margin-top:2px;">關閉</div>
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.7;">
+        雪質：gripping &nbsp;｜&nbsp; 季節累積：613 cm &nbsp;｜&nbsp; 賽季：8 Nov 2025 – 19 Apr 2026
+      </div>
+    </div>
+
+    <!-- LENS RECOMMENDATION -->
+    <div class="card full" style="--accent:linear-gradient(90deg,#ffc84a,#ffe084); border-color:rgba(255,200,50,.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="card-label" style="margin:0;">🥽 Anon MINE77 M5 · 今日鏡片推薦</div>
+        <span class="badge" style="font-size:9.5px;" id="c1-lens-ts">計算中…</span>
+      </div>
+      <div class="lens-grid">
+        <div class="lens-pill" id="lp1-0">
+          <div class="lens-eye" style="background:#0d0d0d;border:1px solid #333;">🕶</div>
+          <div class="lens-vlt">6%</div>
+          <div class="lens-name">Sunny Onyx</div>
+          <div class="lens-grade">S4</div>
+        </div>
+        <div class="lens-pill" id="lp1-1">
+          <div class="lens-eye" style="background:#5a3e9e;">👓</div>
+          <div class="lens-vlt">34%</div>
+          <div class="lens-name">Variable Violet</div>
+          <div class="lens-grade">S2</div>
+        </div>
+        <div class="lens-pill" id="lp1-2">
+          <div class="lens-eye" style="background:#b07070;">👓</div>
+          <div class="lens-vlt">59%</div>
+          <div class="lens-name">Cloudy Pink</div>
+          <div class="lens-grade">S1</div>
+        </div>
+        <div class="lens-pill" id="lp1-3">
+          <div class="lens-eye" style="background:#2a3a4a;">👓</div>
+          <div class="lens-vlt">72%</div>
+          <div class="lens-name">Cloudy Night</div>
+          <div class="lens-grade">S1</div>
+        </div>
+        <div class="lens-pill" id="lp1-4">
+          <div class="lens-eye" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);">🔍</div>
+          <div class="lens-vlt">85%</div>
+          <div class="lens-name">Clear</div>
+          <div class="lens-grade">S0</div>
+        </div>
+      </div>
+      <div class="lens-reasoning" id="c1-lens-why">計算中…</div>
+    </div>
+
+    <!-- MULTI-SOURCE -->
+    <div class="card full" style="--accent:#6b7a99;">
+      <div class="card-label">📡 多來源數據對比</div>
+      <table class="src-table"><thead><tr><th>來源</th><th>氣溫 °C</th><th>濕度 %</th><th>風速 km/h</th><th>降雪 mm</th></tr></thead>
+        <tbody id="c1-src"></tbody></table>
+    </div>
+
+    <!-- HOURLY -->
+    <div class="card full">
+      <div class="card-label">⏱ 未來 24 小時</div>
+      <div class="hourly-wrap">
+        <div class="hourly-row" id="c1-hourly"></div>
+        <div class="mini-chart" id="c1-chart"></div>
+      </div>
+    </div>
+
+    <!-- 7-DAY -->
+    <div class="card full">
+      <div class="card-label">📅 7 天天氣預測</div>
+      <div id="c1-daily"></div>
+    </div>
+
+    <div class="vfooter full">
+      v1.0.0-alpha · dashboard.westech.com.hk<br>
+      天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
+    </div>
+
+  </div>
+</div><!-- /p1 -->
+
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     PAGE 2 · BANFF SUNSHINE VILLAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="page" id="p2" style="--accent:#f5a623;--accent2:#ffd56b;">
+
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="loc" style="color:#f5a623;">🌄 Banff Sunshine Village</div>
+      <div class="sub">Banff National Park · 2,730 m · 51.08°N 115.76°W</div>
+    </div>
+    <div class="hdr-right">
+      <div class="ts" id="ts2">—</div>
+      <div class="refresh-btn" onclick="loadAll()">↻ 更新全部</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- HERO -->
+    <div class="card hero full">
+      <div class="card-label">山頂天氣 · 2,730 m</div>
+      <div class="hero-row">
+        <div class="hero-left">
+          <div class="hero-temp-row">
+            <div class="hero-temp" id="c2-temp">—</div>
+            <div class="hero-unit">°C</div>
+          </div>
+          <div class="hero-desc" id="c2-desc">載入中…</div>
+          <div class="hero-feel" id="c2-feel"></div>
+          <div class="hero-hl">
+            <span class="hi" id="c2-hi"></span>
+            <span class="lo" id="c2-lo"></span>
+          </div>
+        </div>
+        <div class="hero-icon" id="c2-icon">⟳</div>
+      </div>
+      <div class="src-pills" id="c2-pills"></div>
+    </div>
+
+    <!-- HUM -->
+    <div class="card">
+      <div class="card-label">💧 濕度</div>
+      <div class="med-num" id="c2-hum">—<span class="unit">%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="c2-hum-bar" style="width:0%"></div></div>
+      <div class="sub" id="c2-dew">露點 —°C</div>
+    </div>
+
+    <!-- UV -->
+    <div class="card" style="--accent:#e9c83d;">
+      <div class="card-label">☀️ 紫外線</div>
+      <div class="med-num" id="c2-uv">—</div>
+      <div class="sub" id="c2-uv-lbl">等級 —</div>
+      <div class="sub" id="c2-solar">輻射 — W/m²</div>
+    </div>
+
+    <!-- WIND -->
+    <div class="card" style="--accent:#9b64e9;">
+      <div class="card-label">💨 風速</div>
+      <div class="med-num" id="c2-wind">—<span class="unit">km/h</span></div>
+      <div class="compass-wrap">
+        <div class="compass" id="c2-cmp">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
+            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
+            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
+            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
+            <line id="c2-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
+            <line id="c2-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
+          </svg>
+        </div>
+        <div>
+          <div class="sub" id="c2-wdir" style="margin:0">— (—°)</div>
+          <div class="sub" id="c2-gust" style="margin-top:3px">陣風 —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRECIP -->
+    <div class="card" style="--accent:#a0c4f8;">
+      <div class="card-label">🌨 降雪</div>
+      <div class="med-num" id="c2-prec">—</div>
+      <div class="sub" id="c2-snow">積雪 — cm</div>
+      <div class="bar-track"><div class="bar-fill" id="c2-prec-bar" style="width:0%;background:#a0c4f8"></div></div>
+      <div class="sub" id="c2-prob">降雪概率 —%</div>
+    </div>
+
+    <!-- SNOW REPORT - SUNSHINE -->
+    <div class="card full" style="--accent:#f5a623; border-color:rgba(245,166,35,.25);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div class="card-label" style="margin:0;">🏔 Snow Report</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="badge" style="background:rgba(245,166,35,.15);color:#f5a623;">skibanff.com</span>
+          <span style="font-size:10px;color:var(--muted);">Mar 5, 2026</span>
+        </div>
+      </div>
+
+      <div class="ski-stats">
+        <div class="sstat">
+          <div class="sstat-val" style="color:#a0c4f8;">205<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">山頂積雪<br>2,730 m</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat-val" style="color:#a0c4f8;">75<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">山腳積雪<br>1,660 m</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat-val" style="color:#43c98c;">+2<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">昨晚新雪<br>(Mar 4)</div>
+        </div>
+        <div class="sstat">
+          <div class="sstat-val" style="color:#ffc84a;">613<span style="font-size:13px;font-weight:400;">cm</span></div>
+          <div class="sstat-lbl">季節<br>累積</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--muted);margin:8px 0 6px;font-weight:600;letter-spacing:.5px;">🚡 纜椅狀態 (12/12 全部開放)</div>
+      <div class="lift-item"><span>🟢 Standish Express</span><span class="lift-badge open-badge">開放</span></div>
+      <div class="lift-item"><span>🟢 Angel Express</span><span class="lift-badge open-badge">開放</span></div>
+      <div class="lift-item"><span>🟢 Wolverine Express</span><span class="lift-badge open-badge">開放</span></div>
+      <div class="lift-item"><span>🟢 Goat's Eye Express</span><span class="lift-badge open-badge">開放</span></div>
+      <div class="lift-item"><span>🟢 Wawa T-Bar</span><span class="lift-badge open-badge">開放</span></div>
+      <div class="lift-item"><span>🟢 其餘 7 條纜椅</span><span class="lift-badge open-badge">全部開放</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;font-size:11.5px;">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:7px 9px;">
+          <div style="color:var(--muted);font-size:9.5px;">開放路線</div>
+          <div style="color:#f5a623;font-weight:700;font-size:16px;margin-top:2px;">134<span style="font-size:11px;color:var(--muted);font-weight:400;">/140</span></div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:7px 9px;">
+          <div style="color:var(--muted);font-size:9.5px;">Fun Park</div>
+          <div style="color:#43c98c;font-weight:700;font-size:14px;margin-top:2px;">開放 ✅</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:7px 9px;">
+          <div style="color:var(--muted);font-size:9.5px;">Freeride Zone</div>
+          <div style="color:#43c98c;font-weight:700;font-size:14px;margin-top:2px;">開放 ✅</div>
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.7;">
+        雪質：gripping &nbsp;｜&nbsp; Island in the Sky：全開 &nbsp;｜&nbsp; 賽季：2 Nov 2025 – 18 May 2026
+      </div>
+    </div>
+
+    <!-- LENS RECOMMENDATION - SUNSHINE -->
+    <div class="card full" style="--accent:linear-gradient(90deg,#ffc84a,#ffe084); border-color:rgba(255,200,50,.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="card-label" style="margin:0;">🥽 Anon MINE77 M5 · 今日鏡片推薦</div>
+        <span class="badge" style="font-size:9.5px;" id="c2-lens-ts">計算中…</span>
+      </div>
+      <div class="lens-grid">
+        <div class="lens-pill" id="lp2-0">
+          <div class="lens-eye" style="background:#0d0d0d;border:1px solid #333;">🕶</div>
+          <div class="lens-vlt">6%</div>
+          <div class="lens-name">Sunny Onyx</div>
+          <div class="lens-grade">S4</div>
+        </div>
+        <div class="lens-pill" id="lp2-1">
+          <div class="lens-eye" style="background:#5a3e9e;">👓</div>
+          <div class="lens-vlt">34%</div>
+          <div class="lens-name">Variable Violet</div>
+          <div class="lens-grade">S2</div>
+        </div>
+        <div class="lens-pill" id="lp2-2">
+          <div class="lens-eye" style="background:#b07070;">👓</div>
+          <div class="lens-vlt">59%</div>
+          <div class="lens-name">Cloudy Pink</div>
+          <div class="lens-grade">S1</div>
+        </div>
+        <div class="lens-pill" id="lp2-3">
+          <div class="lens-eye" style="background:#2a3a4a;">👓</div>
+          <div class="lens-vlt">72%</div>
+          <div class="lens-name">Cloudy Night</div>
+          <div class="lens-grade">S1</div>
+        </div>
+        <div class="lens-pill" id="lp2-4">
+          <div class="lens-eye" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);">🔍</div>
+          <div class="lens-vlt">85%</div>
+          <div class="lens-name">Clear</div>
+          <div class="lens-grade">S0</div>
+        </div>
+      </div>
+      <div class="lens-reasoning" id="c2-lens-why">計算中…</div>
+    </div>
+
+    <!-- MULTI-SOURCE -->
+    <div class="card full" style="--accent:#6b7a99;">
+      <div class="card-label">📡 多來源數據對比</div>
+      <table class="src-table"><thead><tr><th>來源</th><th>氣溫 °C</th><th>濕度 %</th><th>風速 km/h</th><th>降雪 mm</th></tr></thead>
+        <tbody id="c2-src"></tbody></table>
+    </div>
+
+    <!-- HOURLY -->
+    <div class="card full">
+      <div class="card-label">⏱ 未來 24 小時</div>
+      <div class="hourly-wrap">
+        <div class="hourly-row" id="c2-hourly"></div>
+        <div class="mini-chart" id="c2-chart"></div>
+      </div>
+    </div>
+
+    <!-- 7-DAY -->
+    <div class="card full">
+      <div class="card-label">📅 7 天天氣預測</div>
+      <div id="c2-daily"></div>
+    </div>
+
+    <div class="vfooter full">
+      v1.0.0-alpha · dashboard.westech.com.hk<br>
+      天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
+    </div>
+
+  </div>
+</div><!-- /p2 -->
+
+</div><!-- /stage -->
+
+<!-- NAV DOTS -->
+<div id="dots">
+  <div class="dot on" onclick="go(0)"></div>
+  <div class="dot" onclick="go(1)"></div>
+  <div class="dot" onclick="go(2)"></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── CONFIG ─────────────────────────────── */
+const LOCS = [
+  { id:0, key:'c0', tz:'America%2FAmerica_Edmonton', lat:51.0447, lon:-114.0719, alt:1045,  name:'Calgary'          },
+  { id:1, key:'c1', tz:'America%2FAmerica_Edmonton', lat:50.9411, lon:-115.1509, alt:2258,  name:'Nakiska'          },
+  { id:2, key:'c2', tz:'America%2FAmerica_Edmonton', lat:51.0844, lon:-115.7628, alt:2730,  name:'Sunshine Village' }
+];
+const TZ = 'America/Edmonton';
+
+/* ─── HELPERS ────────────────────────────── */
+function wmoIcon(code, isDay){
+  const m={0:isDay?'☀️':'🌙',1:isDay?'🌤':'🌤',2:'⛅',3:'☁️',
+    45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',
+    71:'🌨',73:'🌨',75:'❄️',77:'🌨',80:'🌦',81:'🌦',82:'⛈',
+    85:'🌨',86:'❄️',95:'⛈',96:'⛈',99:'⛈'};
+  return m[code]??'🌡';
+}
+function wmoDesc(code){
+  const m={0:'晴空萬里',1:'晴轉多雲',2:'多雲間晴',3:'陰天',
+    45:'霧',48:'凍霧',51:'毛毛雨',53:'毛毛雨',55:'濃毛毛雨',
+    61:'小雨',63:'中雨',65:'大雨',71:'小雪',73:'中雪',75:'大雪',
+    77:'冰粒',80:'陣雨',81:'陣雨',82:'強陣雨',85:'陣雪',86:'大陣雪',
+    95:'雷暴',96:'雷暴夾冰雹',99:'強雷暴夾冰雹'};
+  return m[code]??'未知';
+}
+function windDir(deg){
+  const d=['北','北北東','東北','東北東','東','東南東','東南','南南東',
+           '南','南南西','西南','西南西','西','西北西','西北','北北西'];
+  return d[Math.round(deg/22.5)%16];
+}
+function uvInfo(uv){
+  if(uv<3)  return{lbl:'低',color:'#43c98c'};
+  if(uv<6)  return{lbl:'中',color:'#ffd56b'};
+  if(uv<8)  return{lbl:'高',color:'#f5a623'};
+  if(uv<11) return{lbl:'很高',color:'#ff6b6b'};
+  return{lbl:'極高',color:'#c064f6'};
+}
+function timeStr(isoStr){
+  return new Date(isoStr).toLocaleTimeString('zh-Hant',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+function nowHourIdx(times){
+  const now=Date.now();
+  let best=0;
+  for(let i=0;i<times.length;i++){
+    if(new Date(times[i]).getTime()<=now) best=i;
+  }
+  return best;
+}
+
+/* ─── LENS ALGORITHM ─────────────────────── */
+const LENSES=[
+  {idx:0,name:'Sunny Onyx',    vlt:6,  grade:'S4'},
+  {idx:1,name:'Variable Violet',vlt:34, grade:'S2'},
+  {idx:2,name:'Cloudy Pink',   vlt:59, grade:'S1'},
+  {idx:3,name:'Cloudy Night',  vlt:72, grade:'S1'},
+  {idx:4,name:'Clear',         vlt:85, grade:'S0'},
+];
+function lensLight(uv,cloud,alt,isSnow){
+  const altBoost=1+(alt/300)*0.04;
+  const adjUV=uv*altBoost;
+  const snowBonus=isSnow?6:22;
+  return Math.max(0, Math.min(100, adjUV*8 - cloud*0.5 + snowBonus));
+}
+function pickLens(uv,cloud,alt,isSnow,isNight){
+  if(isNight) return{p:4,b:3};
+  const L=lensLight(uv,cloud,alt,isSnow);
+  if(L>=75) return{p:0,b:1,L};
+  if(L>=48) return{p:1,b:2,L};
+  if(L>=22) return{p:2,b:1,L};
+  if(L>=8)  return{p:3,b:2,L};
+  return{p:4,b:3,L};
+}
+function applyLens(pageIdx,uv,cloud,alt,isSnow,isNight,temp,desc){
+  const rec=pickLens(uv,cloud,alt,isSnow,isNight);
+  const p=LENSES[rec.p], b=LENSES[rec.b];
+  const prefix=`lp${pageIdx}`;
+  for(let i=0;i<5;i++){
+    const el=document.getElementById(`${prefix}-${i}`);
+    if(el){ el.classList.remove('pick','alt'); }
+  }
+  document.getElementById(`${prefix}-${rec.p}`)?.classList.add('pick');
+  document.getElementById(`${prefix}-${rec.b}`)?.classList.add('alt');
+
+  const ts=new Date().toLocaleTimeString('zh-Hant',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const ckey=`c${pageIdx}`;
+  document.getElementById(`${ckey}-lens-ts`).textContent=`${ts} 計算`;
+
+  const altUV=(uv*(1+alt/300*0.04)).toFixed(1);
+  const L=rec.L?.toFixed(0)??'—';
+  document.getElementById(`${ckey}-lens-why`).innerHTML=
+    `<strong>🥇 主推：${p.name}</strong>（VLT ${p.vlt}%，${p.grade}）｜ 備用：<strong>${b.name}</strong>（VLT ${b.vlt}%）<br>`+
+    `<br>📊 光照指數 <strong>${L}/100</strong>`+
+    `　UV <strong>${uv.toFixed(1)}</strong> → 海拔修正後 <strong>${altUV}</strong>（+${alt}m）<br>`+
+    `☁️ 雲量 <strong>${Math.round(cloud)}%</strong>`+
+    `　❄️ 正在降雪：<strong>${isSnow?'是':'否'}</strong>`+
+    `　🌡 山頂氣溫：<strong>${temp}°C</strong><br>`+
+    `💡 ${isNight?'夜間騎行，建議最高透光鏡片':isSnow?'降雪/低能見度，建議高透光鏡片':'根據日照強度與雲量綜合計算'}`;
+}
+
+/* ─── COMPASS ROTATION ───────────────────── */
+function rotateCompass(ndId,nsId,deg){
+  const nd=document.getElementById(ndId);
+  const ns=document.getElementById(nsId);
+  if(!nd||!ns) return;
+  const rad=deg*Math.PI/180;
+  // Needle tip (north) rotates around center (26,26), tip at (26,6) offset
+  const cx=26,cy=26,r=20;
+  const tipX=cx+r*Math.sin(rad);
+  const tipY=cy-r*Math.cos(rad);
+  const tailX=cx-r*0.8*Math.sin(rad);
+  const tailY=cy+r*0.8*Math.cos(rad);
+  nd.setAttribute('x2',tipX.toFixed(1));
+  nd.setAttribute('y2',tipY.toFixed(1));
+  ns.setAttribute('x2',tailX.toFixed(1));
+  ns.setAttribute('y2',tailY.toFixed(1));
+}
+
+/* ─── SUN ARC ────────────────────────────── */
+function drawSunArc(arcId,sunId,riseStr,setStr){
+  const arc=document.getElementById(arcId);
+  const sun=document.getElementById(sunId);
+  if(!arc||!sun) return;
+  const now=Date.now();
+  const rise=new Date(riseStr).getTime();
+  const set=new Date(setStr).getTime();
+  const pct=Math.max(0,Math.min(1,(now-rise)/(set-rise)));
+  const total=360;
+  arc.setAttribute('stroke-dashoffset',(total*(1-pct)).toFixed(1));
+  // Quadratic bezier: P0(8,66) P1(160,-24) P2(312,66)
+  const t=pct;
+  const bx=(1-t)*(1-t)*8+2*(1-t)*t*160+t*t*312;
+  const by=(1-t)*(1-t)*66+2*(1-t)*t*(-24)+t*t*66;
+  sun.setAttribute('cx',bx.toFixed(1));
+  sun.setAttribute('cy',by.toFixed(1));
+  sun.setAttribute('opacity', pct>0&&pct<1?'1':'0.3');
+}
+
+/* ─── HOURLY RENDER ──────────────────────── */
+function renderHourly(key,h,idx){
+  const rowEl=document.getElementById(`${key}-hourly`);
+  const chartEl=document.getElementById(`${key}-chart`);
+  if(!rowEl) return;
+  let rowHTML='', chartHTML='';
+  const maxSnow=Math.max(0.1,...h.snowfall.slice(idx,idx+24).map(v=>v||0));
+  const maxRain=Math.max(0.1,...h.precipitation.slice(idx,idx+24).map(v=>v||0));
+  for(let i=0;i<24;i++){
+    const j=(idx+i)%h.time.length;
+    const hr=new Date(h.time[j]).getHours();
+    const label=i===0?'現在':`${hr}時`;
+    const isNow=i===0;
+    const icon=wmoIcon(h.weathercode[j],hr>=6&&hr<20);
+    const temp=Math.round(h.temperature_2m[j]);
+    const prob=h.precipitation_probability[j]||0;
+    const snow=h.snowfall[j]||0;
+    const rain=h.precipitation[j]||0;
+    rowHTML+=`<div class="h-item${isNow?' now':''}">
+      <div class="h-time">${label}</div>
+      <div class="h-icon">${icon}</div>
+      <div class="h-temp">${temp}°</div>
+      <div class="h-snow">${prob>0?prob+'%':''}</div>
+    </div>`;
+    const sh=snow>0?Math.max(3,Math.round(snow/maxSnow*30)):0;
+    const rh=rain>0?Math.max(3,Math.round(rain/maxRain*28)):0;
+    chartHTML+=`<div class="mc-col">
+      <div class="mc-snow" style="height:${sh}px;min-height:${snow>0?3:0}px"></div>
+      <div class="mc-rain"  style="height:${rh}px;min-height:${rain>0?3:0}px"></div>
+    </div>`;
+  }
+  rowEl.innerHTML=rowHTML;
+  if(chartEl) chartEl.innerHTML=chartHTML;
+}
+
+/* ─── DAILY RENDER ───────────────────────── */
+function renderDaily(key,daily){
+  const el=document.getElementById(`${key}-daily`);
+  if(!el) return;
+  let html='';
+  for(let i=0;i<7;i++){
+    const dt=new Date(daily.time[i]);
+    const day=i===0?'今天':i===1?'明天':dt.toLocaleDateString('zh-Hant',{weekday:'short'});
+    const icon=wmoIcon(daily.weathercode[i],true);
+    const desc=wmoDesc(daily.weathercode[i]);
+    const hi=Math.round(daily.temperature_2m_max[i]);
+    const lo=Math.round(daily.temperature_2m_min[i]);
+    const prob=daily.precipitation_probability_max[i]||0;
+    const snowSum=(daily.snowfall_sum[i]||0);
+    html+=`<div class="fc-row">
+      <div class="fc-day">${day}</div>
+      <div class="fc-icon">${icon}</div>
+      <div class="fc-desc">${desc}${snowSum>0?` ❄${snowSum.toFixed(0)}mm`:''}</div>
+      <div class="fc-snow">${prob>0?'💧'+prob+'%':''}</div>
+      <div class="fc-range">
+        <div class="fc-lo">${lo}°</div>
+        <div class="fc-bar"><div class="fc-bar-inner"></div></div>
+        <div class="fc-hi">${hi}°</div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ─── MAIN RENDER ────────────────────────── */
+function render(loc, om, met){
+  const k=loc.key;
+  const h=om.hourly;
+  const d=om.daily;
+  const cw=om.current_weather;
+  const idx=nowHourIdx(h.time);
+
+  const omT  = cw.temperature;
+  const omW  = cw.windspeed;
+  const code = cw.weathercode;
+  const isDay= cw.is_day===1;
+  const omH  = h.relativehumidity_2m[idx]??'—';
+  const omFeel = h.apparent_temperature[idx];
+  const omDew  = h.dewpoint_2m[idx];
+  const omCloud= h.cloudcover[idx]??0;
+  const omUV   = h.uv_index[idx]??0;
+  const omRad  = h.shortwave_radiation[idx]??0;
+  const omSnowH= h.snowfall[idx]??0;
+  const omPrec = h.precipitation[idx]??0;
+  const omProb = h.precipitation_probability[idx]??0;
+  const omWDir = h.winddirection_10m[idx]??0;
+  const omGust = h.windgusts_10m[idx]??0;
+  const omSnow = (h.snow_depth[idx]??0)*100; // m → cm
+  const omPres = h.surface_pressure[idx];
+  const omVis  = (h.visibility[idx]??0)/1000;
+
+  // MET Norway current
+  let metT=null, metH=null, metW=null, metSn=0;
+  try{
+    const ts=met.properties.timeseries;
+    const nowH=new Date().toISOString().slice(0,13);
+    const entry=ts.find(t=>t.time.startsWith(nowH))||ts[0];
+    const dd=entry.data.instant.details;
+    metT=dd.air_temperature;
+    metH=dd.relative_humidity;
+    metW=dd.wind_speed*3.6;
+    metSn=entry.data.next_1_hours?.details?.precipitation_amount??0;
+  }catch(e){}
+
+  // Averages
+  const temps=[omT, metT].filter(v=>v!=null);
+  const avgT =(temps.reduce((a,b)=>a+b,0)/temps.length);
+  const diff  =metT!=null?Math.abs(omT-metT).toFixed(1):null;
+  const avgW  =metW!=null?Math.round((omW+metW)/2):Math.round(omW);
+  const avgH  =metH!=null?Math.round((omH+metH)/2):Math.round(omH);
+
+  // ── HERO
+  document.getElementById(`${k}-temp`).textContent=Math.round(avgT);
+  document.getElementById(`${k}-icon`).textContent=wmoIcon(code,isDay);
+  document.getElementById(`${k}-desc`).textContent=wmoDesc(code);
+  document.getElementById(`${k}-feel`).textContent=`體感溫度 ${Math.round(omFeel)}°C`;
+  document.getElementById(`${k}-hi`).textContent=`▲ ${d.temperature_2m_max[0]}°`;
+  document.getElementById(`${k}-lo`).textContent=`▼ ${d.temperature_2m_min[0]}°`;
+
+  // Source pills
+  let pills=`<span class="pill src1">Open-Meteo ${omT.toFixed(1)}°C</span>`;
+  if(metT!=null){
+    pills+=`<span class="pill src2">MET Norway ${metT.toFixed(1)}°C</span>`;
+    if(diff&&parseFloat(diff)>1.5)
+      pills+=`<span class="pill diff">差異 ±${diff}°C</span>`;
+  }
+  document.getElementById(`${k}-pills`).innerHTML=pills;
+
+  // ── HUMIDITY
+  document.getElementById(`${k}-hum`).innerHTML=`${avgH}<span class="unit">%</span>`;
+  document.getElementById(`${k}-hum-bar`).style.width=`${avgH}%`;
+  document.getElementById(`${k}-dew`).textContent=`露點 ${Math.round(omDew)}°C`;
+
+  // ── UV
+  const ui=uvInfo(omUV);
+  document.getElementById(`${k}-uv`).innerHTML=`<span style="color:${ui.color}">${omUV.toFixed(1)}</span>`;
+  document.getElementById(`${k}-uv-lbl`).innerHTML=`等級 <span style="color:${ui.color}">${ui.lbl}</span>`;
+  document.getElementById(`${k}-solar`).textContent=`輻射 ${Math.round(omRad)} W/m²`;
+
+  // ── WIND
+  document.getElementById(`${k}-wind`).innerHTML=`${avgW}<span class="unit">km/h</span>`;
+  document.getElementById(`${k}-wdir`).textContent=`${windDir(omWDir)} (${Math.round(omWDir)}°)`;
+  document.getElementById(`${k}-gust`).textContent=`陣風 ${Math.round(omGust)} km/h`;
+  rotateCompass(`${k}-nd`,`${k}-ns`,omWDir);
+
+  // ── PRECIP
+  const precipLabel=omSnowH>0?`❄️ ${omSnowH.toFixed(1)} mm`:`🌧 ${omPrec.toFixed(1)} mm`;
+  document.getElementById(`${k}-prec`).textContent=precipLabel;
+  document.getElementById(`${k}-snow`).textContent=`積雪深度 ${Math.round(omSnow)} cm`;
+  document.getElementById(`${k}-prec-bar`).style.width=`${omProb}%`;
+  document.getElementById(`${k}-prob`).textContent=`降水概率 ${omProb}%`;
+
+  // ── PRESSURE / VISIBILITY (Calgary only)
+  if(document.getElementById(`${k}-pres`)){
+    document.getElementById(`${k}-pres`).innerHTML=`${Math.round(omPres)}<span class="unit">hPa</span>`;
+    document.getElementById(`${k}-vis`).innerHTML=`${omVis.toFixed(1)}<span class="unit">km</span>`;
+    const visLabel=omVis>10?'能見度良好':omVis>5?'能見度普通':'能見度較差';
+    document.getElementById(`${k}-vis-lbl`).textContent=visLabel;
+  }
+
+  // ── SUN ARC (Calgary only)
+  if(document.getElementById('c0-rise')&&k==='c0'){
+    document.getElementById('c0-rise').textContent=`🌄 ${timeStr(d.sunrise[0])}`;
+    document.getElementById('c0-set').textContent=`🌇 ${timeStr(d.sunset[0])}`;
+    drawSunArc('c0-arc','c0-sun',d.sunrise[0],d.sunset[0]);
+  }
+
+  // ── MULTI-SOURCE TABLE
+  document.getElementById(`${k}-src`).innerHTML=`
+    <tr><td>Open-Meteo</td><td>${omT.toFixed(1)}</td><td>${Math.round(omH)}</td><td>${Math.round(omW)}</td><td>${omSnowH.toFixed(1)}</td></tr>
+    ${metT!=null?`<tr><td>MET Norway</td><td>${metT.toFixed(1)}</td><td>${metH?Math.round(metH):'—'}</td><td>${metW?Math.round(metW):'—'}</td><td>${metSn.toFixed(1)}</td></tr>`:''}
+    <tr class="avg"><td>平均值</td><td>${avgT.toFixed(1)}</td><td>${avgH}</td><td>${avgW}</td><td>${(((omSnowH)+(metSn))/2).toFixed(1)}</td></tr>
+  `;
+
+  // ── LENS (ski pages only)
+  if(loc.id===1||loc.id===2){
+    const isSnow=[71,73,75,77,85,86].includes(code);
+    applyLens(loc.id, omUV, omCloud, loc.alt, isSnow, !isDay, Math.round(avgT), wmoDesc(code));
+  }
+
+  // ── HOURLY
+  renderHourly(k,h,idx);
+
+  // ── DAILY
+  renderDaily(k,d);
+
+  // ── TIMESTAMP
+  const ts=new Date().toLocaleString('zh-Hant',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+  document.getElementById(`ts${loc.id}`).textContent=`更新 ${ts}`;
+}
+
+/* ─── FETCH ──────────────────────────────── */
+async function fetchOM(lat,lon){
+  const url=`https://api.open-meteo.com/v1/forecast`+
+    `?latitude=${lat}&longitude=${lon}`+
+    `&hourly=temperature_2m,relativehumidity_2m,dewpoint_2m,apparent_temperature,`+
+    `precipitation,snowfall,snow_depth,weathercode,cloudcover,windspeed_10m,`+
+    `winddirection_10m,windgusts_10m,uv_index,shortwave_radiation,`+
+    `precipitation_probability,surface_pressure,visibility`+
+    `&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,`+
+    `precipitation_sum,snowfall_sum,precipitation_probability_max,uv_index_max`+
+    `&timezone=America%2FEdmonton&forecast_days=8&current_weather=true`;
+  const r=await fetch(url);
+  if(!r.ok) throw new Error('OM '+r.status);
+  return r.json();
+}
+async function fetchMET(lat,lon,alt){
+  const url=`https://api.met.no/weatherapi/locationforecast/2.0/compact`+
+    `?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&altitude=${Math.round(alt)}`;
+  const r=await fetch(url,{headers:{'User-Agent':'MountainDashboard/1.0 dashboard.westech.com.hk'}});
+  if(!r.ok) throw new Error('MET '+r.status);
+  return r.json();
+}
+
+async function loadLoc(loc){
+  try{
+    const [om,met]=await Promise.all([fetchOM(loc.lat,loc.lon), fetchMET(loc.lat,loc.lon,loc.alt)]);
+    render(loc,om,met);
+  } catch(err){
+    console.error(loc.name,err);
+    const k=loc.key;
+    document.getElementById(`${k}-temp`).textContent='—';
+    document.getElementById(`${k}-desc`).textContent='資料載入失敗，請稍後再試';
+    document.getElementById(`ts${loc.id}`).textContent='載入失敗';
+  }
+}
+function loadAll(){ LOCS.forEach(l=>loadLoc(l)); }
+
+/* ─── SWIPE NAVIGATION ───────────────────── */
+let cur=0;
+const stage=document.getElementById('stage');
+const dotsEls=[...document.querySelectorAll('.dot')];
+function go(n){
+  cur=Math.max(0,Math.min(2,n));
+  stage.style.transform=`translateX(-${cur*100}vw)`;
+  dotsEls.forEach((d,i)=>d.classList.toggle('on',i===cur));
+}
+
+let sx=0,sy=0,dragging=false;
+stage.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;dragging=true;},{passive:true});
+stage.addEventListener('touchend',e=>{
+  if(!dragging)return;
+  const dx=e.changedTouches[0].clientX-sx;
+  const dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>Math.abs(dy)*1.5&&Math.abs(dx)>55) go(cur+(dx<0?1:-1));
+  dragging=false;
+},{passive:true});
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') go(cur+1);
+  if(e.key==='ArrowLeft')  go(cur-1);
+});
+
+/* ─── INIT ───────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  loadAll();
+  setInterval(loadAll, 15*60*1000); // refresh every 15 min
+});
+</script>
+</body>
+</html>
