@@ -550,13 +550,15 @@ html, body {
   gap: var(--gap);
 }
 .grid3 .card::before { display: none; }
+.grid3 .card { min-height: 0; }
+.grid3 .card { min-height: 0; }
 
 /* ═══════════════════════════════════════════
    HUMIDITY COLLAPSE
 ═══════════════════════════════════════════ */
-.hum-card { cursor: pointer; }
-.hum-body { overflow: hidden; max-height: 80px; transition: max-height 0.3s ease; }
-.hum-card.collapsed .hum-body { max-height: 0; }
+/* humidity removed */
+
+
 .hum-expand-arrow {
   float: right; font-size: 10px; color: var(--muted);
   transition: transform 0.25s ease; display: inline-block;
@@ -669,7 +671,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.7</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
       </div>
       <div class="ts" id="ts0">—</div>
     </div>
@@ -703,19 +705,17 @@ html, body {
       <div class="src-pills" id="c0-pills"></div>
     </div>
 
-    <!-- HUMIDITY (collapsed by default) -->
-    <div class="card hum-card collapsed" onclick="this.classList.toggle('collapsed')">
-      <div class="card-label">💧 濕度 <span class="hum-expand-arrow">▼</span></div>
-      <div class="med-num" id="c0-hum">—<span class="unit">%</span></div>
-      <div class="hum-body">
-        <div class="bar-track"><div class="bar-fill" id="c0-hum-bar" style="width:0%"></div></div>
-        <div class="sub" id="c0-dew">露點 —°C</div>
-      </div>
-    </div>
-
+    <div class="grid3 full">
+    <div class="grid3 full">
+    <div class="grid3 full">
+    <div class="grid3 full">
+    <div class="grid3 full">
+    <div class="grid3 full">
+    <div class="grid3 full">
+    <div class="grid3 full">
     <!-- UV -->
     <div class="card" style="--accent:#e9c83d;">
-      <div class="card-label">☀️ 紫外線</div>
+      <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c0-uv">—</div>
       <div class="sub" id="c0-uv-lbl">等級 —</div>
       <div class="sub" id="c0-solar">輻射 — W/m²</div>
@@ -752,6 +752,14 @@ html, body {
       <div class="sub" id="c0-snow">積雪 — cm</div>
       <div class="bar-track"><div class="bar-fill" id="c0-prec-bar" style="width:0%;background:#a0c4f8"></div></div>
       <div class="sub" id="c0-prob">降水概率 —%</div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
     </div>
 
     <!-- SNOW REPORT -->
@@ -848,7 +856,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.7 · dashboard.westech.com.hk<br>
+      v1.1.8 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -873,7 +881,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.7</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
       </div>
       <div class="ts" id="ts1">—</div>
     </div>
@@ -907,19 +915,9 @@ html, body {
       <div class="src-pills" id="c1-pills"></div>
     </div>
 
-    <!-- HUMIDITY (collapsed by default) -->
-    <div class="card hum-card collapsed" onclick="this.classList.toggle('collapsed')">
-      <div class="card-label">💧 濕度 <span class="hum-expand-arrow">▼</span></div>
-      <div class="med-num" id="c1-hum">—<span class="unit">%</span></div>
-      <div class="hum-body">
-        <div class="bar-track"><div class="bar-fill" id="c1-hum-bar" style="width:0%"></div></div>
-        <div class="sub" id="c1-dew">露點 —°C</div>
-      </div>
-    </div>
-
     <!-- UV -->
     <div class="card" style="--accent:#e9c83d;">
-      <div class="card-label">☀️ 紫外線</div>
+      <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c1-uv">—</div>
       <div class="sub" id="c1-uv-lbl">等級 —</div>
       <div class="sub" id="c1-solar">輻射 — W/m²</div>
@@ -1052,7 +1050,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.7 · dashboard.westech.com.hk<br>
+      v1.1.8 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1077,7 +1075,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.7</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
       </div>
       <div class="ts" id="ts2">—</div>
     </div>
@@ -1111,19 +1109,9 @@ html, body {
       <div class="src-pills" id="c2-pills"></div>
     </div>
 
-    <!-- HUMIDITY (collapsed by default) -->
-    <div class="card hum-card collapsed" onclick="this.classList.toggle('collapsed')">
-      <div class="card-label">💧 濕度 <span class="hum-expand-arrow">▼</span></div>
-      <div class="med-num" id="c2-hum">—<span class="unit">%</span></div>
-      <div class="hum-body">
-        <div class="bar-track"><div class="bar-fill" id="c2-hum-bar" style="width:0%"></div></div>
-        <div class="sub" id="c2-dew">露點 —°C</div>
-      </div>
-    </div>
-
     <!-- UV -->
     <div class="card" style="--accent:#e9c83d;">
-      <div class="card-label">☀️ 紫外線</div>
+      <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c2-uv">—</div>
       <div class="sub" id="c2-uv-lbl">等級 —</div>
       <div class="sub" id="c2-solar">輻射 — W/m²</div>
@@ -1256,7 +1244,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.7 · dashboard.westech.com.hk<br>
+      v1.1.8 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skilouise.com · onthesnow.com
     </div>
 
@@ -1281,7 +1269,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.7</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
       </div>
       <div class="ts" id="ts3">—</div>
     </div>
@@ -1315,19 +1303,9 @@ html, body {
       <div class="src-pills" id="c3-pills"></div>
     </div>
 
-    <!-- HUMIDITY (collapsed by default) -->
-    <div class="card hum-card collapsed" onclick="this.classList.toggle('collapsed')">
-      <div class="card-label">💧 濕度 <span class="hum-expand-arrow">▼</span></div>
-      <div class="med-num" id="c3-hum">—<span class="unit">%</span></div>
-      <div class="hum-body">
-        <div class="bar-track"><div class="bar-fill" id="c3-hum-bar" style="width:0%"></div></div>
-        <div class="sub" id="c3-dew">露點 —°C</div>
-      </div>
-    </div>
-
     <!-- UV -->
     <div class="card" style="--accent:#e9c83d;">
-      <div class="card-label">☀️ 紫外線</div>
+      <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c3-uv">—</div>
       <div class="sub" id="c3-uv-lbl">等級 —</div>
       <div class="sub" id="c3-solar">輻射 — W/m²</div>
@@ -1458,7 +1436,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.7 · dashboard.westech.com.hk<br>
+      v1.1.8 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：banffnorquay.com · onthesnow.com
     </div>
 
@@ -1483,7 +1461,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.7</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
       </div>
       <div class="ts" id="ts4">—</div>
     </div>
@@ -1512,19 +1490,9 @@ html, body {
       <div class="src-pills" id="c4-pills"></div>
     </div>
 
-    <!-- HUMIDITY (collapsed) -->
-    <div class="card hum-card collapsed" onclick="this.classList.toggle('collapsed')">
-      <div class="card-label">💧 濕度 <span class="hum-expand-arrow">▼</span></div>
-      <div class="med-num" id="c4-hum">—<span class="unit">%</span></div>
-      <div class="hum-body">
-        <div class="bar-track"><div class="bar-fill" id="c4-hum-bar" style="width:0%"></div></div>
-        <div class="sub" id="c4-dew">露點 —°C</div>
-      </div>
-    </div>
-
     <!-- UV -->
     <div class="card" style="--accent:#e9c83d;">
-      <div class="card-label">☀️ 紫外線</div>
+      <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c4-uv">—</div>
       <div class="sub" id="c4-uv-lbl">等級 —</div>
       <div class="sub" id="c4-solar">輻射 — W/m²</div>
@@ -1630,7 +1598,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.7 · dashboard.westech.com.hk<br>
+      v1.1.8 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -2262,7 +2230,7 @@ window.addEventListener('focus', ()=>{
 });
 
 // ══════════════════════════════════════════════════════════
-//  PWA + Push Notification  (v1.1.7)
+//  PWA + Push Notification  (v1.1.8)
 // ══════════════════════════════════════════════════════════
 const PUSH_WORKER_URL = 'https://ski-push.westech.com.hk';
 const VAPID_PUBLIC_KEY = 'BOFt84jfiRV3tgCupl8Bhy47IyfbEaFlMprja18X6G9GmihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
