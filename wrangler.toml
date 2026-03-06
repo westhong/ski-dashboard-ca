@@ -1,4 +1,4 @@
-name = "ski-dashboard"
+name = "ski-dashboard-ca"
 main = "_worker.js"
 compatibility_date = "2025-09-27"
 compatibility_flags = ["nodejs_compat"]
@@ -9,7 +9,7 @@ binding = "ASSETS"
 
 [[kv_namespaces]]
 binding = "SKI_DATA"
-id = "PLACEHOLDER_KV_ID"
+id = "88494e71b9134fcb84e1af2d16ffd1f7"
 
 [vars]
 VAPID_SUBJECT = "mailto:west.wong@westech.com.hk"
