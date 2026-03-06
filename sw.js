@@ -1,12 +1,12 @@
-// Ski Dashboard Service Worker v1.0
-// Handles: caching, push notifications, background sync
+// Ski Dashboard Service Worker v2.0
+// Architecture: All-in-One Cloudflare Worker
+// Push endpoints are now same-origin (/api/subscribe, /api/unsubscribe)
 
-const CACHE_NAME = 'ski-dashboard-v1';
-const PUSH_WORKER_URL = 'https://ski-push.westech.com.hk';
+const CACHE_NAME = 'ski-dashboard-v2';
 
-// ─── Install: cache shell ───────────────────────────────────────────────────
+// ─── Install ────────────────────────────────────────────────────────────────
 self.addEventListener('install', event => {
-  console.log('[SW] Install');
+  console.log('[SW] Install v2.0');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(['/']);
@@ -16,7 +16,7 @@ self.addEventListener('install', event => {
 
 // ─── Activate: clean old caches ────────────────────────────────────────────
 self.addEventListener('activate', event => {
-  console.log('[SW] Activate');
+  console.log('[SW] Activate v2.0');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
@@ -26,14 +26,12 @@ self.addEventListener('activate', event => {
 
 // ─── Fetch: network-first, fallback to cache ───────────────────────────────
 self.addEventListener('fetch', event => {
-  // Only cache same-origin GET requests
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Clone and cache successful responses
         if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
@@ -67,7 +65,6 @@ self.addEventListener('push', event => {
     }
   }
 
-  // Map resort name to page index for deep link
   const resortPageMap = {
     'Nakiska': '/?page=0',
     'Sunshine': '/?page=1',
@@ -103,23 +100,19 @@ self.addEventListener('push', event => {
 // ─── Notification Click ─────────────────────────────────────────────────────
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-
   if (event.action === 'dismiss') return;
 
   const targetUrl = (event.notification.data && event.notification.data.url)
-    ? event.notification.data.url
-    : '/';
+    ? event.notification.data.url : '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      // Focus existing window if open
       for (const client of clientList) {
         if (client.url.includes('dashboard.westech.com.hk') && 'focus' in client) {
           client.navigate(targetUrl);
           return client.focus();
         }
       }
-      // Otherwise open new window
       if (clients.openWindow) {
         return clients.openWindow('https://dashboard.westech.com.hk' + targetUrl);
       }
@@ -127,13 +120,13 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ─── Push Subscription Change ───────────────────────────────────────────────
+// ─── Push Subscription Change (same-origin endpoint) ───────────────────────
 self.addEventListener('pushsubscriptionchange', event => {
   console.log('[SW] Push subscription changed, re-subscribing...');
   event.waitUntil(
     self.registration.pushManager.subscribe({ userVisibleOnly: true })
       .then(subscription => {
-        return fetch(PUSH_WORKER_URL + '/api/subscribe', {
+        return fetch('/api/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(subscription.toJSON())
