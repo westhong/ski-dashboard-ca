@@ -150,6 +150,14 @@ html, body {
 .hdr-left .loc { font-size: 21px; font-weight: 750; letter-spacing: -.4px; }
 .hdr-left .sub { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
 .hdr-right { text-align: right; flex-shrink: 0; margin-left: 12px; }
+/* ═══ DEBUG PANEL ═══ */
+#debug-panel{display:none;position:fixed;bottom:50px;left:10px;right:10px;max-height:40vh;background:rgba(0,0,0,.93);border:1px solid #ff6b6b;border-radius:14px;padding:12px;z-index:9999;overflow-y:auto;font-family:'SF Mono',monospace;font-size:10px;line-height:1.5;color:#ff9a9a;}
+#debug-panel.on{display:block;}
+#debug-panel .ok{color:#43c98c;}
+#debug-panel .err{color:#ff6b6b;}
+#debug-panel .inf{color:#a0c4f8;}
+#dbg-close{float:right;cursor:pointer;color:#ff6b6b;font-weight:bold;font-size:14px;}
+
 /* Version badge top-right */
 .ver-badge {
   display: inline-block;
@@ -480,7 +488,7 @@ html, body {
       <div class="sub">Alberta · 1,045 m · 51.04°N 114.07°W</div>
     </div>
     <div class="hdr-right">
-      <div class="ver-badge">v1.0.3</div>
+      <div class="ver-badge">v1.0.4</div>
       <div class="ts" id="ts0">—</div>
     </div>
   </div>
@@ -632,7 +640,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.0.3 · dashboard.westech.com.hk<br>
+      v1.0.4 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -651,7 +659,7 @@ html, body {
       <div class="sub">Kananaskis Country · 2,258 m · 50.94°N 115.15°W</div>
     </div>
     <div class="hdr-right">
-      <div class="ver-badge">v1.0.3</div>
+      <div class="ver-badge">v1.0.4</div>
       <div class="ts" id="ts1">—</div>
     </div>
   </div>
@@ -848,7 +856,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.0.3 · dashboard.westech.com.hk<br>
+      v1.0.4 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -867,7 +875,7 @@ html, body {
       <div class="sub">Banff National Park · 2,730 m · 51.08°N 115.76°W</div>
     </div>
     <div class="hdr-right">
-      <div class="ver-badge">v1.0.3</div>
+      <div class="ver-badge">v1.0.4</div>
       <div class="ts" id="ts2">—</div>
     </div>
   </div>
@@ -1064,7 +1072,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.0.3 · dashboard.westech.com.hk<br>
+      v1.0.4 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1081,6 +1089,7 @@ html, body {
   <span id="ptr-text">下拉重新整理</span>
 </div>
 
+<div id="debug-panel"><span id="dbg-close" onclick="document.getElementById('debug-panel').classList.remove('on')">✕ close</span><div id="dbg-log"></div></div>
 <!-- NAV DOTS -->
 <div id="dots">
   <div class="dot on" onclick="go(0)"></div>
@@ -1462,12 +1471,12 @@ async function fetchMET(lat,lon,alt){
   const url=`https://api.met.no/weatherapi/locationforecast/2.0/compact`+
     `?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&altitude=${Math.round(alt)}`;
   return fetchWithRetry(url, {
-    mode:'cors', cache:'no-cache',
-    headers:{'User-Agent':'MountainDashboard/1.0 dashboard.westech.com.hk'}
+    mode:'cors', cache:'no-cache'
   });
 }
 
 async function loadLoc(loc){
+  dbg('inf','→ '+loc.name);
   try{
     const [om,met]=await Promise.all([fetchOM(loc.lat,loc.lon), fetchMET(loc.lat,loc.lon,loc.alt)]);
     render(loc,om,met);
@@ -1475,7 +1484,9 @@ async function loadLoc(loc){
     console.error(loc.name,err);
     const k=loc.key;
     document.getElementById(`${k}-temp`).textContent='—';
-    document.getElementById(`${k}-desc`).textContent='資料載入失敗，請稍後再試';
+    const emsg=err?.message||String(err);
+    dbg('err','FAIL '+loc.name+': '+emsg);
+    document.getElementById(`${k}-desc`).textContent='失敗: '+emsg;
     document.getElementById(`ts${loc.id}`).textContent='載入失敗';
   }
 }
