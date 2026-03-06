@@ -1,0 +1,18 @@
+name = "ski-dashboard"
+main = "_worker.js"
+compatibility_date = "2025-09-27"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "."
+binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "SKI_DATA"
+id = "PLACEHOLDER_KV_ID"
+
+[vars]
+VAPID_SUBJECT = "mailto:west.wong@westech.com.hk"
+
+[triggers]
+crons = ["*/30 * * * *"]
