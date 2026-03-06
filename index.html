@@ -639,6 +639,8 @@ html, body {
 }
 #push-toast.show { opacity: 1; }
 
+.gust-wrap { margin-top: 10px; }
+.gust-row  { font-size: 0.88em; }
 </style>
 </head>
 <body>
@@ -669,7 +671,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.9</div>
       </div>
       <div class="ts" id="ts0">—</div>
     </div>
@@ -717,23 +719,8 @@ html, body {
     <div class="card" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c0-wind">—<span class="unit">km/h</span></div>
-      <div class="compass-wrap">
-        <div class="compass" id="c0-cmp">
-          <svg viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
-            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
-            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
-            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
-            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
-            <line id="c0-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
-            <line id="c0-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
-          </svg>
-        </div>
-        <div>
-          <div class="sub" id="c0-wdir" style="margin:0">— (—°)</div>
-          <div class="sub" id="c0-gust" style="margin-top:3px">陣風 —</div>
-        </div>
+            <div class="gust-wrap">
+        <div class="sub gust-row" id="c0-gust">陣風 — km/h</div>
       </div>
     </div>
 
@@ -840,7 +827,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.8 · dashboard.westech.com.hk<br>
+      v1.1.9 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -865,7 +852,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.9</div>
       </div>
       <div class="ts" id="ts1">—</div>
     </div>
@@ -913,23 +900,8 @@ html, body {
     <div class="card" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c1-wind">—<span class="unit">km/h</span></div>
-      <div class="compass-wrap">
-        <div class="compass" id="c1-cmp">
-          <svg viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
-            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
-            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
-            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
-            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
-            <line id="c1-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
-            <line id="c1-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
-          </svg>
-        </div>
-        <div>
-          <div class="sub" id="c1-wdir" style="margin:0">— (—°)</div>
-          <div class="sub" id="c1-gust" style="margin-top:3px">陣風 —</div>
-        </div>
+            <div class="gust-wrap">
+        <div class="sub gust-row" id="c1-gust">陣風 — km/h</div>
       </div>
     </div>
 
@@ -1036,7 +1008,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.8 · dashboard.westech.com.hk<br>
+      v1.1.9 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1061,7 +1033,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.9</div>
       </div>
       <div class="ts" id="ts2">—</div>
     </div>
@@ -1109,23 +1081,8 @@ html, body {
     <div class="card" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c2-wind">—<span class="unit">km/h</span></div>
-      <div class="compass-wrap">
-        <div class="compass" id="c2-cmp">
-          <svg viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
-            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
-            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
-            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
-            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
-            <line id="c2-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
-            <line id="c2-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
-          </svg>
-        </div>
-        <div>
-          <div class="sub" id="c2-wdir" style="margin:0">— (—°)</div>
-          <div class="sub" id="c2-gust" style="margin-top:3px">陣風 —</div>
-        </div>
+            <div class="gust-wrap">
+        <div class="sub gust-row" id="c2-gust">陣風 — km/h</div>
       </div>
     </div>
 
@@ -1232,7 +1189,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.8 · dashboard.westech.com.hk<br>
+      v1.1.9 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skilouise.com · onthesnow.com
     </div>
 
@@ -1257,7 +1214,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.9</div>
       </div>
       <div class="ts" id="ts3">—</div>
     </div>
@@ -1305,23 +1262,8 @@ html, body {
     <div class="card" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c3-wind">—<span class="unit">km/h</span></div>
-      <div class="compass-wrap">
-        <div class="compass" id="c3-cmp">
-          <svg viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
-            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
-            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
-            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
-            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
-            <line id="c3-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
-            <line id="c3-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
-          </svg>
-        </div>
-        <div>
-          <div class="sub" id="c3-wdir" style="margin:0">— (—°)</div>
-          <div class="sub" id="c3-gust" style="margin-top:3px">陣風 —</div>
-        </div>
+            <div class="gust-wrap">
+        <div class="sub gust-row" id="c3-gust">陣風 — km/h</div>
       </div>
     </div>
 
@@ -1426,7 +1368,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.8 · dashboard.westech.com.hk<br>
+      v1.1.9 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：banffnorquay.com · onthesnow.com
     </div>
 
@@ -1451,7 +1393,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.8</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.1.9</div>
       </div>
       <div class="ts" id="ts4">—</div>
     </div>
@@ -1494,23 +1436,8 @@ html, body {
     <div class="card" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c4-wind">—<span class="unit">km/h</span></div>
-      <div class="compass-wrap">
-        <div class="compass" id="c4-cmp">
-          <svg viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="24" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
-            <text x="26" y="8"  text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7">N</text>
-            <text x="46" y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">E</text>
-            <text x="26" y="48" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">S</text>
-            <text x="6"  y="29" text-anchor="middle" fill="rgba(255,255,255,.2)"  font-size="6">W</text>
-            <line id="c4-nd" x1="26" y1="26" x2="26" y2="6" stroke="#ff6b6b" stroke-width="2.5" stroke-linecap="round"/>
-            <line id="c4-ns" x1="26" y1="26" x2="26" y2="44" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="26" cy="26" r="3" fill="#ff6b6b"/>
-          </svg>
-        </div>
-        <div>
-          <div class="sub" id="c4-wdir" style="margin:0">— (—°)</div>
-          <div class="sub" id="c4-gust" style="margin-top:3px">陣風 —</div>
-        </div>
+            <div class="gust-wrap">
+        <div class="sub gust-row" id="c4-gust">陣風 — km/h</div>
       </div>
     </div>
 
@@ -1590,7 +1517,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.1.8 · dashboard.westech.com.hk<br>
+      v1.1.9 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -1725,7 +1652,6 @@ function applyLens(pageIdx,uv,cloud,alt,isSnow,isNight,temp,desc){
 }
 
 /* ─── COMPASS ROTATION ───────────────────── */
-function rotateCompass(ndId,nsId,deg){
   const nd=document.getElementById(ndId);
   const ns=document.getElementById(nsId);
   if(!nd||!ns) return;
@@ -2016,9 +1942,10 @@ function render(loc, om, met){
 
   // ── WIND
   document.getElementById(`${k}-wind`).innerHTML=`${avgW}<span class="unit">km/h</span>`;
-  document.getElementById(`${k}-wdir`).textContent=`${windDir(omWDir)} (${Math.round(omWDir)}°)`;
-  document.getElementById(`${k}-gust`).textContent=`陣風 ${Math.round(omGust)} km/h`;
-  rotateCompass(`${k}-nd`,`${k}-ns`,omWDir);
+  const gustVal = Math.round(omGust);
+  const gustColor = gustVal >= 90 ? '#ff4d4d' : gustVal >= 60 ? '#ffaa33' : 'rgba(255,255,255,0.55)';
+  const gustWarn  = gustVal >= 60 ? ' ⚠️' : '';
+  document.getElementById(`${k}-gust`).innerHTML=`<span style="color:${gustColor}">陣風 ${gustVal} km/h${gustWarn}</span>`;
 
   // ── PRECIP (show only one type)
   let precipIcon, precipTypeLabel, precipVal;
@@ -2219,7 +2146,7 @@ window.addEventListener('focus', ()=>{
 });
 
 // ══════════════════════════════════════════════════════════
-//  PWA + Push Notification  (v1.1.8)
+//  PWA + Push Notification  (v1.1.9)
 // ══════════════════════════════════════════════════════════
 const PUSH_WORKER_URL = 'https://ski-push.westech.com.hk';
 const VAPID_PUBLIC_KEY = 'BOFt84jfiRV3tgCupl8Bhy47IyfbEaFlMprja18X6G9GmihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
