@@ -150,16 +150,21 @@ html, body {
 .hdr-left .loc { font-size: 21px; font-weight: 750; letter-spacing: -.4px; }
 .hdr-left .sub { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
 .hdr-right { text-align: right; flex-shrink: 0; margin-left: 12px; }
-.hdr-right .ts { font-size: 10.5px; color: var(--muted); }
-.refresh-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  margin-top: 5px; padding: 5px 11px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 20px; font-size: 11px; color: var(--text);
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transition: background .2s;
+/* Version badge top-right */
+.ver-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: 9.5px; font-weight: 700;
+  background: rgba(255,255,255,0.07);
+  color: var(--muted);
+  letter-spacing: .4px;
+  margin-bottom: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
 }
-.refresh-btn:active { background: rgba(255,255,255,.12); }
+
+.hdr-right .ts { font-size: 10.5px; color: var(--muted); }
+
 
 /* ═══════════════════════════════════════════
    GRID
@@ -475,8 +480,8 @@ html, body {
       <div class="sub">Alberta · 1,045 m · 51.04°N 114.07°W</div>
     </div>
     <div class="hdr-right">
+      <div class="ver-badge">v1.0.2</div>
       <div class="ts" id="ts0">—</div>
-      <div class="refresh-btn" onclick="loadAll()">↻ 更新全部</div>
     </div>
   </div>
 
@@ -627,7 +632,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.0.1 · dashboard.westech.com.hk<br>
+      v1.0.2 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -646,8 +651,8 @@ html, body {
       <div class="sub">Kananaskis Country · 2,258 m · 50.94°N 115.15°W</div>
     </div>
     <div class="hdr-right">
+      <div class="ver-badge">v1.0.2</div>
       <div class="ts" id="ts1">—</div>
-      <div class="refresh-btn" onclick="loadAll()">↻ 更新全部</div>
     </div>
   </div>
 
@@ -843,7 +848,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.0.1 · dashboard.westech.com.hk<br>
+      v1.0.2 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -862,8 +867,8 @@ html, body {
       <div class="sub">Banff National Park · 2,730 m · 51.08°N 115.76°W</div>
     </div>
     <div class="hdr-right">
+      <div class="ver-badge">v1.0.2</div>
       <div class="ts" id="ts2">—</div>
-      <div class="refresh-btn" onclick="loadAll()">↻ 更新全部</div>
     </div>
   </div>
 
@@ -1059,7 +1064,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.0.1 · dashboard.westech.com.hk<br>
+      v1.0.2 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1503,7 +1508,24 @@ document.addEventListener('keydown',e=>{
 /* ─── INIT ───────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
   loadAll();
-  setInterval(loadAll, 15*60*1000); // refresh every 15 min
+  setInterval(loadAll, 15*60*1000); // auto-refresh every 15 min
+});
+
+// Reload data when tab becomes visible again (mobile background → foreground)
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') {
+    loadAll();
+  }
+});
+
+// Reload on back navigation / page restore (iOS Safari BFCache)
+window.addEventListener('pageshow', (e)=>{
+  if(e.persisted) loadAll();
+});
+
+// Reload when app comes to foreground from home screen
+window.addEventListener('focus', ()=>{
+  loadAll();
 });
 </script>
 </body>
