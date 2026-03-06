@@ -647,19 +647,23 @@ html, body {
 <div id="beta-banner" style="
   position:fixed; top:0; left:0; right:0; z-index:9999;
   background:linear-gradient(135deg,#ff6b35 0%,#f7c948 100%);
-  color:#1a1a1a; font-size:0.82em; font-weight:600;
-  padding:10px 44px 10px 14px;
+  color:#1a1a1a; font-size:0.78em; font-weight:700;
+  padding: env(safe-area-inset-top,0px) 44px 8px 14px;
+  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+  padding-bottom: 8px;
+  padding-left: 14px;
+  padding-right: 44px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
   box-shadow:0 2px 12px rgba(0,0,0,.45);
-  line-height:1.45;
+  line-height:1.4;
 ">
-  🧪 <strong>內部測試版</strong> &nbsp;·&nbsp; 感謝大家的支持！如果你喜歡，請告訴我 👉 Line: <strong>westwong-ca</strong>
-  <button onclick="document.getElementById('beta-banner').style.display='none'"
-    style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-           background:none;border:none;font-size:1.3em;cursor:pointer;color:#1a1a1a;line-height:1;">✕</button>
+  🧪 內部測試版 &nbsp;·&nbsp; Line: <strong>westwong-ca</strong>
+  <button onclick="document.getElementById('beta-banner').style.display='none';document.getElementById('stage').style.paddingTop='0'"
+    style="position:absolute;right:10px;bottom:8px;
+           background:none;border:none;font-size:1.2em;cursor:pointer;color:#1a1a1a;line-height:1;">✕</button>
 </div>
 <style>
-  /* Push all content down when beta-banner is visible */
-  #stage { margin-top: 0; }
+  #stage { padding-top: 36px; }
 </style>
 
 
@@ -689,7 +693,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.0</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.1</div>
       </div>
       <div class="ts" id="ts0">—</div>
     </div>
@@ -726,7 +730,7 @@ html, body {
     <!-- HUMIDITY (collapsed by default) -->
     
     <!-- UV -->
-    <div class="card" style="--accent:#e9c83d;">
+    <div class="card mountain-bg mountain-bg-l" style="--accent:#e9c83d;">
       <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c0-uv">—</div>
       <div class="sub" id="c0-uv-lbl">等級 —</div>
@@ -734,7 +738,7 @@ html, body {
     </div>
 
     <!-- WIND -->
-    <div class="card" style="--accent:#9b64e9;">
+    <div class="card mountain-bg mountain-bg-c" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c0-wind">—<span class="unit">km/h</span></div>
       <div class="gust-wrap">
@@ -743,7 +747,7 @@ html, body {
     </div>
 
     <!-- PRECIP (label updated dynamically) -->
-    <div class="card" style="--accent:#a0c4f8;">
+    <div class="card mountain-bg mountain-bg-r" style="--accent:#a0c4f8;">
       <div class="card-label" id="c0-prec-lbl">❄️ 降雪</div>
       <div class="med-num" id="c0-prec">—</div>
       <div class="sub" id="c0-snow">積雪 — cm</div>
@@ -845,7 +849,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.2.0 · dashboard.westech.com.hk<br>
+      v1.2.1 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -870,7 +874,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.0</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.1</div>
       </div>
       <div class="ts" id="ts1">—</div>
     </div>
@@ -907,7 +911,7 @@ html, body {
     <!-- HUMIDITY (collapsed by default) -->
     
     <!-- UV -->
-    <div class="card" style="--accent:#e9c83d;">
+    <div class="card mountain-bg mountain-bg-l" style="--accent:#e9c83d;">
       <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c1-uv">—</div>
       <div class="sub" id="c1-uv-lbl">等級 —</div>
@@ -915,7 +919,7 @@ html, body {
     </div>
 
     <!-- WIND -->
-    <div class="card" style="--accent:#9b64e9;">
+    <div class="card mountain-bg mountain-bg-c" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c1-wind">—<span class="unit">km/h</span></div>
       <div class="gust-wrap">
@@ -924,7 +928,7 @@ html, body {
     </div>
 
     <!-- PRECIP (label updated dynamically) -->
-    <div class="card" style="--accent:#a0c4f8;">
+    <div class="card mountain-bg mountain-bg-r" style="--accent:#a0c4f8;">
       <div class="card-label" id="c1-prec-lbl">❄️ 降雪</div>
       <div class="med-num" id="c1-prec">—</div>
       <div class="sub" id="c1-snow">積雪 — cm</div>
@@ -1026,7 +1030,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.2.0 · dashboard.westech.com.hk<br>
+      v1.2.1 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1051,7 +1055,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.0</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.1</div>
       </div>
       <div class="ts" id="ts2">—</div>
     </div>
@@ -1088,7 +1092,7 @@ html, body {
     <!-- HUMIDITY (collapsed by default) -->
     
     <!-- UV -->
-    <div class="card" style="--accent:#e9c83d;">
+    <div class="card mountain-bg mountain-bg-l" style="--accent:#e9c83d;">
       <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c2-uv">—</div>
       <div class="sub" id="c2-uv-lbl">等級 —</div>
@@ -1096,7 +1100,7 @@ html, body {
     </div>
 
     <!-- WIND -->
-    <div class="card" style="--accent:#9b64e9;">
+    <div class="card mountain-bg mountain-bg-c" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c2-wind">—<span class="unit">km/h</span></div>
       <div class="gust-wrap">
@@ -1105,7 +1109,7 @@ html, body {
     </div>
 
     <!-- PRECIP (label updated dynamically) -->
-    <div class="card" style="--accent:#a0c4f8;">
+    <div class="card mountain-bg mountain-bg-r" style="--accent:#a0c4f8;">
       <div class="card-label" id="c2-prec-lbl">❄️ 降雪</div>
       <div class="med-num" id="c2-prec">—</div>
       <div class="sub" id="c2-snow">積雪 — cm</div>
@@ -1207,7 +1211,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.2.0 · dashboard.westech.com.hk<br>
+      v1.2.1 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skilouise.com · onthesnow.com
     </div>
 
@@ -1232,7 +1236,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.0</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.1</div>
       </div>
       <div class="ts" id="ts3">—</div>
     </div>
@@ -1269,7 +1273,7 @@ html, body {
     <!-- HUMIDITY (collapsed by default) -->
     
     <!-- UV -->
-    <div class="card" style="--accent:#e9c83d;">
+    <div class="card mountain-bg mountain-bg-l" style="--accent:#e9c83d;">
       <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c3-uv">—</div>
       <div class="sub" id="c3-uv-lbl">等級 —</div>
@@ -1277,7 +1281,7 @@ html, body {
     </div>
 
     <!-- WIND -->
-    <div class="card" style="--accent:#9b64e9;">
+    <div class="card mountain-bg mountain-bg-c" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c3-wind">—<span class="unit">km/h</span></div>
       <div class="gust-wrap">
@@ -1286,7 +1290,7 @@ html, body {
     </div>
 
     <!-- PRECIP (label updated dynamically) -->
-    <div class="card" style="--accent:#a0c4f8;">
+    <div class="card mountain-bg mountain-bg-r" style="--accent:#a0c4f8;">
       <div class="card-label" id="c3-prec-lbl">❄️ 降雪</div>
       <div class="med-num" id="c3-prec">—</div>
       <div class="sub" id="c3-snow">積雪 — cm</div>
@@ -1386,7 +1390,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.2.0 · dashboard.westech.com.hk<br>
+      v1.2.1 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：banffnorquay.com · onthesnow.com
     </div>
 
@@ -1411,7 +1415,7 @@ html, body {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.0</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v1.2.1</div>
       </div>
       <div class="ts" id="ts4">—</div>
     </div>
@@ -1443,7 +1447,7 @@ html, body {
     <!-- HUMIDITY (collapsed) -->
     
     <!-- UV -->
-    <div class="card" style="--accent:#e9c83d;">
+    <div class="card mountain-bg mountain-bg-l" style="--accent:#e9c83d;">
       <div class="card-label">☀️ 日照</div>
       <div class="med-num" id="c4-uv">—</div>
       <div class="sub" id="c4-uv-lbl">等級 —</div>
@@ -1451,7 +1455,7 @@ html, body {
     </div>
 
     <!-- WIND -->
-    <div class="card" style="--accent:#9b64e9;">
+    <div class="card mountain-bg mountain-bg-c" style="--accent:#9b64e9;">
       <div class="card-label">💨 風速</div>
       <div class="med-num" id="c4-wind">—<span class="unit">km/h</span></div>
       <div class="gust-wrap">
@@ -1460,7 +1464,7 @@ html, body {
     </div>
 
     <!-- PRECIP (label updated dynamically) -->
-    <div class="card" style="--accent:#a0c4f8;">
+    <div class="card mountain-bg mountain-bg-r" style="--accent:#a0c4f8;">
       <div class="card-label" id="c4-prec-lbl">🌧 降水</div>
       <div class="med-num" id="c4-prec">—</div>
       <div class="sub" id="c4-snow">積雪深度 — cm</div>
@@ -1535,7 +1539,7 @@ html, body {
     </div>
 
     <div class="vfooter full">
-      v1.2.0 · dashboard.westech.com.hk<br>
+      v1.2.1 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -2149,7 +2153,7 @@ window.addEventListener('focus', ()=>{
 });
 
 // ══════════════════════════════════════════════════════════
-//  PWA + Push Notification  (v1.2.0)
+//  PWA + Push Notification  (v1.2.1)
 // ══════════════════════════════════════════════════════════
 const PUSH_WORKER_URL = 'https://ski-push.westech.com.hk';
 const VAPID_PUBLIC_KEY = 'BOFt84jfiRV3tgCupl8Bhy47IyfbEaFlMprja18X6G9GmihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
