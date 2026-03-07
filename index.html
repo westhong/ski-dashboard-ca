@@ -2576,6 +2576,32 @@ async function devSwitchCity(cityKey) {
     if (tsEl) tsEl.textContent = '—';
   });
 
+  // ── Also update LOCS[4] (city center page) + p4 header
+  const cc = CITY_CENTER[cityKey];
+  if (cc) {
+    LOCS[4].lat  = cc.lat;
+    LOCS[4].lon  = cc.lon;
+    LOCS[4].alt  = cc.alt;
+    LOCS[4].name = cc.name;
+    LOCS[4].tz   = tz;
+    // Update p4 header
+    const p4 = document.getElementById('p4');
+    if (p4) {
+      const locEl = p4.querySelector('.loc');
+      const subEl = p4.querySelector('.sub');
+      if (locEl) locEl.textContent = cc.flag + ' ' + cc.name;
+      if (subEl) subEl.textContent = cc.subName + ' · ' + cc.alt.toLocaleString() + ' m';
+      // Reset p4 fields
+      ['temp','desc','feel','hi','lo','uv','uv-lbl','solar','wind','gust',
+       'prec','snow','prob'].forEach(field => {
+        const el = document.getElementById('c4-' + field);
+        if (el) el.textContent = field === 'desc' ? '載入中…' : '—';
+      });
+      const ts4 = document.getElementById('ts4');
+      if (ts4) ts4.textContent = '—';
+    }
+  }
+
   // ── Show loading feedback in dev panel
   const resultEl = document.getElementById('dev-city-result');
   if (resultEl) {
@@ -2586,7 +2612,7 @@ async function devSwitchCity(cityKey) {
 
   // ── Reload weather for the 4 resort pages
   try {
-    await Promise.all(LOCS.slice(0,4).map(l => loadLoc(l)));
+    await Promise.all(LOCS.slice(0,5).map(l => loadLoc(l)));
     if (resultEl) {
       resultEl.textContent = '✅ 已切換到 ' + CITY_CONFIG[cityKey].nameZh;
     }
@@ -2639,6 +2665,15 @@ const CITY_LOCS = {
     { id:2, key:'c2', name:'Grouse Mountain',     subName:'North Vancouver, BC',       lat:49.3757, lon:-123.0786, alt:916  },
     { id:3, key:'c3', name:'Mt Seymour',          subName:'North Vancouver, BC',       lat:49.3793, lon:-122.9468, alt:1454 },
   ],
+};
+
+// City center coordinates for LOCS[4] (last page)
+const CITY_CENTER = {
+  calgary:   { name: 'Calgary',    nameZh: '卡加利',   flag: '🏙',  subName: 'Alberta',          lat: 51.0447, lon: -114.0719, alt: 1045 },
+  ottawa:    { name: 'Ottawa',     nameZh: '渥太華',   flag: '🍁', subName: 'Ontario / Quebec', lat: 45.4215, lon:  -75.6972, alt:  76  },
+  toronto:   { name: 'Toronto',    nameZh: '多倫多',   flag: '🏙️', subName: 'Ontario',           lat: 43.6532, lon:  -79.3832, alt:   76 },
+  edmonton:  { name: 'Edmonton',   nameZh: '埃德蒙頓', flag: '🌾', subName: 'Alberta',          lat: 53.5461, lon: -113.4938, alt:  671 },
+  vancouver: { name: 'Vancouver',  nameZh: '溫哥華',   flag: '🌊', subName: 'British Columbia',  lat: 49.2827, lon: -123.1207, alt:   70 },
 };
 
 // Emoji per resort key (used in page header)
@@ -2697,6 +2732,18 @@ function enterDevMode() {
   // Close debug panel
   document.getElementById('debug-panel').classList.remove('on');
   devLog('Dev mode entered — city bar toggle ready');
+
+  // ── Restore remembered city (if not calgary, switch immediately)
+  const savedCity = localStorage.getItem('v3_city') || 'calgary';
+  if (savedCity && savedCity !== 'calgary') {
+    devLog('Restoring saved city: ' + savedCity);
+    devSwitchCity(savedCity);
+  } else {
+    // Still highlight the city buttons for calgary
+    document.querySelectorAll('.city-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.city === 'calgary');
+    });
+  }
 }
 
 function exitDevMode() {
