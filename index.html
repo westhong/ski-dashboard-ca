@@ -170,6 +170,10 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
 /* Dev tools bottom sheet */
 #dev-panel-backdrop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);-webkit-tap-highlight-color:transparent;}
 #dev-panel-backdrop.open{display:block;}
+
+.city-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#e0e0e0;border-radius:20px;padding:6px 14px;font-size:0.85em;cursor:pointer;transition:background 0.2s,border-color 0.2s;}
+.city-btn:hover{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);}
+.city-btn.active{background:rgba(204,0,0,0.25);border-color:#ff4444;color:#ff9999;}
 #dev-tools-panel{display:none;position:fixed;bottom:0;left:0;right:0;z-index:10001;background:#0d1117;border-radius:20px 20px 0 0;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(env(safe-area-inset-bottom,0px),12px);box-shadow:0 -6px 40px rgba(0,0,0,0.7);transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);}
 #dev-tools-panel.open{display:block;transform:translateY(0);}
 .dev-sheet-handle{width:36px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:12px auto 0;}
@@ -2443,6 +2447,51 @@ function devLog(msg) {
 const BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const SCREWDRIVER_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+
+// ─── v3.1 City Config (mirrors _worker.js CITY_RESORTS) ──────────────────────
+const CITY_CONFIG = {
+  calgary:   { name: 'Calgary',    nameZh: '卡加利',   flag: '🇨🇦', province: 'AB' },
+  ottawa:    { name: 'Ottawa',     nameZh: '渥太華',   flag: '🍁', province: 'ON/QC' },
+  toronto:   { name: 'Toronto',    nameZh: '多倫多',   flag: '🏙️', province: 'ON' },
+  edmonton:  { name: 'Edmonton',   nameZh: '埃德蒙頓', flag: '🌾', province: 'AB' },
+  vancouver: { name: 'Vancouver',  nameZh: '溫哥華',   flag: '🌊', province: 'BC' },
+};
+let activeCity = localStorage.getItem('v3_city') || 'calgary';
+
+async function devSwitchCity(cityKey) {
+  if (!CITY_CONFIG[cityKey]) return;
+  activeCity = cityKey;
+  localStorage.setItem('v3_city', cityKey);
+  // Update selector highlight
+  document.querySelectorAll('.city-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.city === cityKey);
+  });
+  // Show loading state in dev panel
+  const resultEl = document.getElementById('dev-city-result');
+  if (resultEl) {
+    resultEl.textContent = `正在載入 ${CITY_CONFIG[cityKey].nameZh} 雪場資料…`;
+    resultEl.className = 'dev-result show';
+  }
+  try {
+    const r = await fetch(`/api/snow?city=${cityKey}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    // Display resort snow data in dev panel
+    if (resultEl) {
+      const lines = d.resorts.map(res => {
+        const snow = res.snowfall_cm != null ? `新雪${res.snowfall_cm.toFixed(1)}cm` : '—';
+        const temp = res.temp != null ? `${res.temp.toFixed(1)}°C` : '—';
+        return `${res.emoji} ${res.name} (${res.dist}km) — ${temp}, ${snow}`;
+      }).join('\n');
+      resultEl.textContent = `${d.nameZh} (${d.resorts.length}個雪場):\n${lines}`;
+    }
+    devLog(`City switched to ${cityKey}: ${d.resorts.length} resorts loaded`);
+  } catch(e) {
+    if (resultEl) { resultEl.textContent = '載入失敗: ' + e.message; resultEl.className = 'dev-result show err'; }
+    devLog('City switch error: ' + e.message);
+  }
+}
+
 function enterDevMode() {
   document.body.classList.add('dev-mode-active');
   // Banner → red
@@ -2454,14 +2503,14 @@ function enterDevMode() {
   if (banner) {
     banner.style.background = '#cc0000';
     banner.style.color = '#ffffff';
-    banner.innerHTML = '🛠 開發者模式 &nbsp;·&nbsp; <strong style="letter-spacing:0.5px">V3</strong>'
+    banner.innerHTML = '🛠 開發者模式 &nbsp;·&nbsp; <strong style="letter-spacing:0.5px">v3.1</strong>'
       + '<button onclick="exitDevMode()" style="position:absolute;right:10px;bottom:8px;'
       + 'background:none;border:none;font-size:1.2em;cursor:pointer;color:#fff;line-height:1;">✕</button>';
   }
   // ver-badge → "V3"
   document.querySelectorAll('.ver-badge').forEach(b => {
     if (!b.dataset.origText) b.dataset.origText = b.textContent;
-    b.textContent = 'V3';
+    b.textContent = 'v3.1';
     b.onclick = null;
   });
   // Bell → screwdriver
@@ -2502,6 +2551,10 @@ function exitDevMode() {
 function openDevPanel() {
   devLoadStats();
   devCheckSW();
+  // Highlight active city button
+  document.querySelectorAll('.city-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.city === activeCity);
+  });
   document.getElementById('dev-tools-panel').classList.add('open');
   document.getElementById('dev-panel-backdrop').classList.add('open');
 }
@@ -2620,6 +2673,20 @@ async function devRefreshData() {
     <button class="dev-sheet-close" onclick="closeDevPanel()">✕ 關閉</button>
   </div>
 
+
+  <!-- City Selector (v3.1) -->
+  <div class="dev-section">
+    <div class="dev-section-title">🗺️ 城市切換 <span style="font-size:0.7em;opacity:0.6;font-weight:400;">(僅開發者模式)</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px;">
+      <button class="city-btn" data-city="calgary"   onclick="devSwitchCity('calgary')">🇨🇦 卡加利</button>
+      <button class="city-btn" data-city="ottawa"    onclick="devSwitchCity('ottawa')">🍁 渥太華</button>
+      <button class="city-btn" data-city="toronto"   onclick="devSwitchCity('toronto')">🏙️ 多倫多</button>
+      <button class="city-btn" data-city="edmonton"  onclick="devSwitchCity('edmonton')">🌾 埃德蒙頓</button>
+      <button class="city-btn" data-city="vancouver" onclick="devSwitchCity('vancouver')">🌊 溫哥華</button>
+    </div>
+    <div id="dev-city-result" class="dev-result"></div>
+  </div>
+
   <!-- Push Notification -->
   <div class="dev-section">
     <div class="dev-section-title">📲 推送通知</div>
@@ -2644,7 +2711,7 @@ async function devRefreshData() {
     <div class="dev-section-title">⚙️ 系統資訊</div>
     <div class="dev-row">
       <span class="dev-row-label">版本</span>
-      <span class="dev-row-value">v2.1.4 / V3</span>
+      <span class="dev-row-value" id="dev-version-display">v2.1.4 → v3.1</span>
     </div>
     <div class="dev-row">
       <span class="dev-row-label">VAPID Key (前8碼)</span>
