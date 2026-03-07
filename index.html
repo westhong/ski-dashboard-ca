@@ -729,32 +729,23 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
 #push-bell-btn:active { opacity: 0.7; }
 /* ── City Toggle Button (dev mode only, sits next to screwdriver) ── */
 #city-toggle-btn{
-  display:inline-flex;
+  display:none;
   align-items:center;justify-content:center;
-  padding:2px 9px;
+  padding:2px 7px;
   border-radius:12px;font-size:11px;
-  background:rgba(80,150,255,0.12);
-  border:1px solid rgba(80,150,255,0.3);
-  color:rgba(140,190,255,0.9);
+  background:rgba(204,0,0,0.12);
+  border:1px solid rgba(204,0,0,0.3);
+  color:rgba(255,100,100,0.8);
   cursor:pointer;user-select:none;
   -webkit-user-select:none;-webkit-tap-highlight-color:transparent;
   transition:background 0.2s,border-color 0.2s;
   height:20px;margin-bottom:4px;
 }
 #city-toggle-btn.bar-open{
-  background:rgba(80,150,255,0.28);
-  border-color:#5096ff;color:#99c8ff;
-}
-/* In dev mode: use red accent */
-body.dev-mode-active #city-toggle-btn{
-  background:rgba(204,0,0,0.12);
-  border:1px solid rgba(204,0,0,0.3);
-  color:rgba(255,100,100,0.8);
-}
-body.dev-mode-active #city-toggle-btn.bar-open{
   background:rgba(204,0,0,0.28);
   border-color:#ff4444;color:#ff9999;
 }
+body.dev-mode-active #city-toggle-btn{display:inline-flex;}
 
 
 /* Push toast */
@@ -781,25 +772,6 @@ body.dev-mode-active #city-toggle-btn.bar-open{
 #push-toast.show { opacity: 1; }
 
 
-/* ─── PUBLIC CITY BAR (v3.4) ─────────────────── */
-/* Normal mode: dark blue-grey, not red dev theme  */
-body:not(.dev-mode-active) #dev-city-bar {
-  background: rgba(15,20,35,0.96);
-  border-bottom: 1px solid rgba(100,160,255,0.25);
-}
-body:not(.dev-mode-active) #dev-city-bar .city-label {
-  color: rgba(140,180,255,0.75);
-}
-body:not(.dev-mode-active) #dev-city-bar .city-btn {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #e0e8ff;
-}
-body:not(.dev-mode-active) #dev-city-bar .city-btn.active {
-  background: rgba(80,150,255,0.25);
-  border-color: rgba(80,150,255,0.6);
-  color: #7eb8ff;
-}
 
 /* Location detect button inside city bar */
 #geo-detect-btn {
@@ -888,6 +860,19 @@ body:not(.dev-mode-active) #dev-city-bar .city-btn.active {
   background: rgba(255,255,255,0.07);
   border: 1px solid rgba(255,255,255,0.15);
   color: rgba(255,255,255,0.6);
+}
+
+/* ─── v3.4c: city bar below banner in normal mode ─────────────────────────
+   Banner height ≈ safe-area-inset-top + 21px (text + padding-bottom 8px).
+   Keep dev mode as-is (already uses padding-top:38px to clear dev banner).  */
+body.dev-city-bar-open:not(.dev-mode-active) #dev-city-bar {
+  /* Position city bar directly below the beta-banner */
+  top: max(calc(env(safe-area-inset-top, 0px) + 21px), 36px);
+  padding-top: 6px !important;
+}
+body.dev-city-bar-open:not(.dev-mode-active) #stage {
+  /* banner height + city-bar height; use env() to match banner on notched phones */
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 21px + 40px), 76px) !important;
 }
 </style>
 </head>
