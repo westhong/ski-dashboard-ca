@@ -2974,14 +2974,16 @@ function applyLens(pageIdx,uv,cloud,alt,isSnow,isNight,temp,desc){
 
 
 /* ─── SUN ARC ────────────────────────────── */
-function drawSunArc(arcId,sunId,riseStr,setStr){
+function drawSunArc(arcId,sunId,riseStr,setStr,nowCityMin){
   const arc=document.getElementById(arcId);
   const sun=document.getElementById(sunId);
   if(!arc||!sun) return;
-  const now=Date.now();
-  const rise=new Date(riseStr).getTime();
-  const set=new Date(setStr).getTime();
-  const pct=Math.max(0,Math.min(1,(now-rise)/(set-rise)));
+  // Parse city-local minutes from ISO strings (no tz conversion needed)
+  const toMin=s=>parseInt(s.slice(11,13))*60+parseInt(s.slice(14,16));
+  const riseMin=toMin(riseStr);
+  const setMin=toMin(setStr);
+  // nowCityMin: minutes-past-midnight in city-local time, passed from render()
+  const pct=Math.max(0,Math.min(1,(nowCityMin-riseMin)/(setMin-riseMin)));
   const total=360;
   arc.setAttribute('stroke-dashoffset',(total*(1-pct)).toFixed(1));
   // Quadratic bezier: P0(8,66) P1(160,-24) P2(312,66)
@@ -3149,7 +3151,7 @@ function renderDaily(key,daily){
   if(!el) return;
   let html='';
   for(let i=0;i<7;i++){
-    const dt=new Date(daily.time[i]);
+    const dt=new Date(daily.time[i]+'T12:00'); // noon avoids UTC-midnight rollover
     const day=i===0?'今天':i===1?'明天':dt.toLocaleDateString('zh-Hant',{weekday:'short'});
     const icon=wmoIcon(daily.weathercode[i],true);
     const desc=wmoDesc(daily.weathercode[i]);
@@ -3289,7 +3291,9 @@ function render(loc, om, met){
   if(document.getElementById('c8-rise')&&k==='c8'){
     document.getElementById('c8-rise').textContent=`🌄 ${timeStr(d.sunrise[0])}`;
     document.getElementById('c8-set').textContent=`🌇 ${timeStr(d.sunset[0])}`;
-    drawSunArc('c8-arc','c8-sun',d.sunrise[0],d.sunset[0]);
+    // City-local minutes-past-midnight for correct sun arc position
+    const cityNowMin = parseInt(h.time[idx].slice(11,13))*60 + parseInt(h.time[idx].slice(14,16));
+    drawSunArc('c8-arc','c8-sun',d.sunrise[0],d.sunset[0],cityNowMin);
   }
 
   // ── MULTI-SOURCE TABLE
