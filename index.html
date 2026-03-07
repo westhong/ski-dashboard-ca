@@ -202,6 +202,7 @@ html, body {
 /* Body state when dev mode active */
 
 body.dev-city-bar-open #stage{padding-top:76px!important;}
+#dev-city-bar{padding-top:max(calc(env(safe-area-inset-top,0px) + 6px),6px);}
 body.dev-mode-active #dev-city-bar{padding-top:max(calc(env(safe-area-inset-top,0px) + 38px),38px);}
 body.dev-mode-active .ver-badge{background:rgba(204,0,0,0.2)!important;color:#ff6b6b!important;border-color:rgba(204,0,0,0.4)!important;}
 body.dev-mode-active #push-bell-btn{background:rgba(204,0,0,0.15);border-color:rgba(204,0,0,0.4);color:#ff6b6b;}
@@ -728,23 +729,32 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
 #push-bell-btn:active { opacity: 0.7; }
 /* ── City Toggle Button (dev mode only, sits next to screwdriver) ── */
 #city-toggle-btn{
-  display:none;
+  display:inline-flex;
   align-items:center;justify-content:center;
-  padding:2px 7px;
+  padding:2px 9px;
   border-radius:12px;font-size:11px;
-  background:rgba(204,0,0,0.12);
-  border:1px solid rgba(204,0,0,0.3);
-  color:rgba(255,100,100,0.8);
+  background:rgba(80,150,255,0.12);
+  border:1px solid rgba(80,150,255,0.3);
+  color:rgba(140,190,255,0.9);
   cursor:pointer;user-select:none;
   -webkit-user-select:none;-webkit-tap-highlight-color:transparent;
   transition:background 0.2s,border-color 0.2s;
   height:20px;margin-bottom:4px;
 }
 #city-toggle-btn.bar-open{
+  background:rgba(80,150,255,0.28);
+  border-color:#5096ff;color:#99c8ff;
+}
+/* In dev mode: use red accent */
+body.dev-mode-active #city-toggle-btn{
+  background:rgba(204,0,0,0.12);
+  border:1px solid rgba(204,0,0,0.3);
+  color:rgba(255,100,100,0.8);
+}
+body.dev-mode-active #city-toggle-btn.bar-open{
   background:rgba(204,0,0,0.28);
   border-color:#ff4444;color:#ff9999;
 }
-body.dev-mode-active #city-toggle-btn{display:inline-flex;}
 
 
 /* Push toast */
@@ -3225,6 +3235,13 @@ document.addEventListener('keydown',e=>{
     try {
       await loadAll();
 maybeAutoDetectOnFirstVisit();
+// Update city bar label to show current city
+(function() {
+  const saved = localStorage.getItem('v3_city') || 'calgary';
+  const cfg = CITY_CONFIG[saved];
+  const lbl = document.getElementById('city-bar-label');
+  if (lbl && cfg) lbl.textContent = cfg.flag + ' ' + cfg.nameZh;
+})();
     } catch(e) { /* individual errors handled in loadLoc */ }
     // Ensure spinner shows for at least 500ms (feels more substantial)
     const elapsed = Date.now() - t0;
