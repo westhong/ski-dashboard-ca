@@ -165,7 +165,7 @@ html, body {
 /* ── DEV MODE PAGE (V3 Bottom Sheet) ── */
 /* Body state when dev mode active */
 
-body.dev-mode-active #stage{padding-top:76px!important;}
+body.dev-city-bar-open #stage{padding-top:76px!important;}
 body.dev-mode-active #dev-city-bar{padding-top:max(calc(env(safe-area-inset-top,0px) + 38px),38px);}
 body.dev-mode-active .ver-badge{background:rgba(204,0,0,0.2)!important;color:#ff6b6b!important;border-color:rgba(204,0,0,0.4)!important;}
 body.dev-mode-active #push-bell-btn{background:rgba(204,0,0,0.15);border-color:rgba(204,0,0,0.4);color:#ff6b6b;}
@@ -194,7 +194,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
   scrollbar-width:none;
 }
 #dev-city-bar::-webkit-scrollbar{display:none;}
-body.dev-mode-active #dev-city-bar{display:block;}
+#dev-city-bar.bar-open{display:block;}
 #dev-city-bar .city-btn{
   display:inline-block;
   margin-right:8px;
@@ -690,6 +690,26 @@ body.dev-mode-active #dev-city-bar{display:block;}
   stroke: #5bc4ff;
 }
 #push-bell-btn:active { opacity: 0.7; }
+/* ── City Toggle Button (dev mode only, sits next to screwdriver) ── */
+#city-toggle-btn{
+  display:none;
+  align-items:center;justify-content:center;
+  padding:2px 7px;
+  border-radius:12px;font-size:11px;
+  background:rgba(204,0,0,0.12);
+  border:1px solid rgba(204,0,0,0.3);
+  color:rgba(255,100,100,0.8);
+  cursor:pointer;user-select:none;
+  -webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+  transition:background 0.2s,border-color 0.2s;
+  height:20px;margin-bottom:4px;
+}
+#city-toggle-btn.bar-open{
+  background:rgba(204,0,0,0.28);
+  border-color:#ff4444;color:#ff9999;
+}
+body.dev-mode-active #city-toggle-btn{display:inline-flex;}
+
 
 /* Push toast */
 #push-toast {
@@ -779,6 +799,7 @@ body.dev-mode-active #dev-city-bar{display:block;}
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+        <button id="city-toggle-btn" onclick="toggleCityBar()" title="切換城市">🗺</button>
         <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v2.1.4</div>
       </div>
       <div class="ts" id="ts0">—</div>
@@ -960,6 +981,7 @@ body.dev-mode-active #dev-city-bar{display:block;}
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+        <button id="city-toggle-btn" onclick="toggleCityBar()" title="切換城市">🗺</button>
         <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v2.1.4</div>
       </div>
       <div class="ts" id="ts1">—</div>
@@ -1141,6 +1163,7 @@ body.dev-mode-active #dev-city-bar{display:block;}
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+        <button id="city-toggle-btn" onclick="toggleCityBar()" title="切換城市">🗺</button>
         <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v2.1.4</div>
       </div>
       <div class="ts" id="ts2">—</div>
@@ -1322,6 +1345,7 @@ body.dev-mode-active #dev-city-bar{display:block;}
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+        <button id="city-toggle-btn" onclick="toggleCityBar()" title="切換城市">🗺</button>
         <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v2.1.4</div>
       </div>
       <div class="ts" id="ts3">—</div>
@@ -1501,6 +1525,7 @@ body.dev-mode-active #dev-city-bar{display:block;}
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+        <button id="city-toggle-btn" onclick="toggleCityBar()" title="切換城市">🗺</button>
         <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v2.1.4</div>
       </div>
       <div class="ts" id="ts4">—</div>
@@ -2509,37 +2534,137 @@ const CITY_CONFIG = {
 let activeCity = localStorage.getItem('v3_city') || 'calgary';
 
 async function devSwitchCity(cityKey) {
-  if (!CITY_CONFIG[cityKey]) return;
+  if (!CITY_CONFIG[cityKey] || !CITY_LOCS[cityKey]) return;
   activeCity = cityKey;
   localStorage.setItem('v3_city', cityKey);
-  // Update selector highlight (both bar and panel)
+
+  // ── Update selector highlight (city bar + panel)
   document.querySelectorAll('.city-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.city === cityKey);
   });
-  // Show loading state in dev panel
+
+  // ── Mutate the global LOCS array so loadLoc() uses new coordinates
+  const tz = CITY_TZ[cityKey] || 'America%2FEdmonton';
+  const newResorts = CITY_LOCS[cityKey];
+  for (let i = 0; i < 4; i++) {
+    const nr = newResorts[i];
+    LOCS[i].lat  = nr.lat;
+    LOCS[i].lon  = nr.lon;
+    LOCS[i].alt  = nr.alt;
+    LOCS[i].name = nr.name;
+    LOCS[i].tz   = tz;
+  }
+
+  // ── Update page header name + sub-label for pages c0–c3
+  const pageEls = [document.getElementById('p0'), document.getElementById('p1'),
+                   document.getElementById('p2'), document.getElementById('p3')];
+  pageEls.forEach((page, i) => {
+    if (!page) return;
+    const nr = newResorts[i];
+    const locEl  = page.querySelector('.loc');
+    const subEl  = page.querySelector('.sub');
+    if (locEl) locEl.textContent = PAGE_EMOJI[i] + ' ' + nr.name;
+    if (subEl) subEl.textContent = nr.subName + ' · ' + nr.alt.toLocaleString() + ' m';
+    // Reset data fields to loading state
+    ['temp','desc','feel','hi','lo','uv','uv-lbl','solar','wind','gust',
+     'prec','snow','prob'].forEach(field => {
+      const el = document.getElementById(`c${i}-${field}`);
+      if (el) el.textContent = field === 'desc' ? '載入中…' : '—';
+    });
+    // Reset timestamp
+    const tsEl = document.getElementById(`ts${i}`);
+    if (tsEl) tsEl.textContent = '—';
+  });
+
+  // ── Show loading feedback in dev panel
   const resultEl = document.getElementById('dev-city-result');
   if (resultEl) {
-    resultEl.textContent = `正在載入 ${CITY_CONFIG[cityKey].nameZh} 雪場資料…`;
+    resultEl.textContent = '正在切換到 ' + CITY_CONFIG[cityKey].nameZh + '…';
     resultEl.className = 'dev-result show';
   }
+  devLog('City → ' + cityKey + ': mutated LOCS, reloading weather…');
+
+  // ── Reload weather for the 4 resort pages
   try {
-    const r = await fetch(`/api/snow?city=${cityKey}`);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    // Display resort snow data in dev panel
+    await Promise.all(LOCS.slice(0,4).map(l => loadLoc(l)));
     if (resultEl) {
-      const lines = d.resorts.map(res => {
-        const snow = res.snowfall_cm != null ? `新雪${res.snowfall_cm.toFixed(1)}cm` : '—';
-        const temp = res.temp != null ? `${res.temp.toFixed(1)}°C` : '—';
-        return `${res.emoji} ${res.name} (${res.dist}km) — ${temp}, ${snow}`;
-      }).join('\n');
-      resultEl.textContent = `${d.nameZh} (${d.resorts.length}個雪場):\n${lines}`;
+      resultEl.textContent = '✅ 已切換到 ' + CITY_CONFIG[cityKey].nameZh;
     }
-    devLog(`City switched to ${cityKey}: ${d.resorts.length} resorts loaded`);
+    devLog('City switch complete: ' + cityKey);
   } catch(e) {
     if (resultEl) { resultEl.textContent = '載入失敗: ' + e.message; resultEl.className = 'dev-result show err'; }
     devLog('City switch error: ' + e.message);
   }
+}
+
+// ─── v3.1 City Resort Data (used by devSwitchCity to update LOCS) ─────────────
+// TZ per city for Open-Meteo requests
+const CITY_TZ = {
+  calgary:   'America%2FEdmonton',
+  ottawa:    'America%2FToronto',
+  toronto:   'America%2FToronto',
+  edmonton:  'America%2FEdmonton',
+  vancouver: 'America%2FVancouver',
+};
+
+// First 4 resorts per city become pages c0–c3 (same keys render() already uses)
+const CITY_LOCS = {
+  calgary: [
+    { id:0, key:'c0', name:'Lake Louise',         subName:'Banff National Park',       lat:51.4254, lon:-116.1773, alt:2637 },
+    { id:1, key:'c1', name:'Sunshine Village',    subName:'Banff National Park',       lat:51.0630, lon:-115.7729, alt:2730 },
+    { id:2, key:'c2', name:'Nakiska',             subName:'Kananaskis Country',        lat:50.9406, lon:-115.1531, alt:2258 },
+    { id:3, key:'c3', name:'Mt Norquay',          subName:'Banff National Park',       lat:51.2035, lon:-115.5622, alt:2133 },
+  ],
+  ottawa: [
+    { id:0, key:'c0', name:'Mont-Tremblant',      subName:'Laurentians, QC',           lat:46.2135, lon:-74.5851,  alt:875  },
+    { id:1, key:'c1', name:'Mont Blanc',          subName:'Laurentians, QC',           lat:46.0759, lon:-74.8553,  alt:300  },
+    { id:2, key:'c2', name:'Mont Ste-Marie',      subName:'Gatineau Hills, QC',        lat:46.2133, lon:-75.6167,  alt:400  },
+    { id:3, key:'c3', name:'Camp Fortune',        subName:'Gatineau Park, QC',         lat:45.5175, lon:-75.8428,  alt:360  },
+  ],
+  toronto: [
+    { id:0, key:'c0', name:'Blue Mountain',       subName:'Collingwood, ON',           lat:44.5017, lon:-80.3170,  alt:721  },
+    { id:1, key:'c1', name:'Mont-Tremblant',      subName:'Laurentians, QC',           lat:46.2135, lon:-74.5851,  alt:875  },
+    { id:2, key:'c2', name:'Horseshoe Resort',    subName:'Barrie, ON',                lat:44.5080, lon:-79.7061,  alt:391  },
+    { id:3, key:'c3', name:'Mt St Louis Moonstone',subName:'Barrie, ON',              lat:44.5847, lon:-79.7253,  alt:360  },
+  ],
+  edmonton: [
+    { id:0, key:'c0', name:'Marmot Basin',        subName:'Jasper National Park, AB',  lat:52.9079, lon:-118.0630, alt:2612 },
+    { id:1, key:'c1', name:'Lake Louise',         subName:'Banff National Park, AB',   lat:51.4254, lon:-116.1773, alt:2637 },
+    { id:2, key:'c2', name:'Sunshine Village',    subName:'Banff National Park, AB',   lat:51.0630, lon:-115.7729, alt:2730 },
+    { id:3, key:'c3', name:'Rabbit Hill',         subName:'Edmonton, AB',              lat:53.3826, lon:-113.7012, alt:760  },
+  ],
+  vancouver: [
+    { id:0, key:'c0', name:'Whistler Blackcomb',  subName:'Sea to Sky, BC',            lat:50.1163, lon:-122.9574, alt:2182 },
+    { id:1, key:'c1', name:'Cypress Mountain',    subName:'North Vancouver, BC',       lat:49.3954, lon:-123.2036, alt:1440 },
+    { id:2, key:'c2', name:'Grouse Mountain',     subName:'North Vancouver, BC',       lat:49.3757, lon:-123.0786, alt:916  },
+    { id:3, key:'c3', name:'Mt Seymour',          subName:'North Vancouver, BC',       lat:49.3793, lon:-122.9468, alt:1454 },
+  ],
+};
+
+// Emoji per resort key (used in page header)
+const PAGE_EMOJI = ['⛷', '⛷', '🏔', '⛷'];
+
+// Toggle the city-bar visibility
+function toggleCityBar() {
+  const bar = document.getElementById('dev-city-bar');
+  const btn = document.getElementById('city-toggle-btn');
+  const isOpen = bar.classList.toggle('bar-open');
+  // sync ALL city-toggle-btn instances (one per page)
+  document.querySelectorAll('#city-toggle-btn').forEach(b => b.classList.toggle('bar-open', isOpen));
+  document.body.classList.toggle('dev-city-bar-open', isOpen);
+  if (isOpen) {
+    // Highlight active city
+    document.querySelectorAll('.city-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.city === activeCity);
+    });
+  }
+}
+
+// Close city bar (called on exit dev mode)
+function closeCityBar() {
+  document.getElementById('dev-city-bar').classList.remove('bar-open');
+  document.querySelectorAll('#city-toggle-btn').forEach(b => b.classList.remove('bar-open'));
+  document.body.classList.remove('dev-city-bar-open');
 }
 
 function enterDevMode() {
@@ -2571,16 +2696,13 @@ function enterDevMode() {
   });
   // Close debug panel
   document.getElementById('debug-panel').classList.remove('on');
-  // Highlight active city in city bar
-  document.querySelectorAll('#dev-city-bar .city-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.city === activeCity);
-  });
-  devLog('Dev mode entered — city: ' + activeCity);
+  devLog('Dev mode entered — city bar toggle ready');
 }
 
 function exitDevMode() {
   document.body.classList.remove('dev-mode-active');
   closeDevPanel();
+  closeCityBar();
   // Restore banner
   const banner = document.getElementById('beta-banner');
   if (banner && banner.dataset.origHtml) {
