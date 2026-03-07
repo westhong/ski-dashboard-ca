@@ -32,10 +32,17 @@
   border-radius: 24px;
   padding: 8px 18px;
   font-size: 12.5px; color: #dde6f7;
-  transition: transform 0.3s cubic-bezier(.25,.46,.45,.94), opacity 0.3s;
+  transition: transform 0.35s cubic-bezier(.25,.46,.45,.94),
+              opacity 0.3s ease,
+              background 0.3s ease,
+              border-color 0.3s ease;
   opacity: 0;
   pointer-events: none;
   white-space: nowrap;
+}
+#ptr-indicator.hiding {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(-80px) !important;
 }
 #ptr-indicator.visible {
   opacity: 1;
@@ -60,6 +67,34 @@
 }
 #ptr-indicator.refreshing #ptr-arrow { display: none; }
 #ptr-indicator.refreshing #ptr-spin  { display: inline-block; }
+/* ── PTR success state ─────────────────────────── */
+#ptr-indicator.success {
+  background: rgba(34,197,94,0.22);
+  border-color: rgba(34,197,94,0.45);
+  transform: translateX(-50%) translateY(14px);
+  opacity: 1;
+}
+#ptr-indicator.success #ptr-spin  { display: none; }
+#ptr-indicator.success #ptr-check { display: inline-block; }
+#ptr-check {
+  display: none;
+  font-size: 16px;
+  animation: ptr-pop .35s cubic-bezier(.18,.89,.32,1.28) both;
+}
+@keyframes ptr-pop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  70%  { transform: scale(1.25) rotate(5deg);  opacity: 1; }
+  100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+/* ── Card data-flash when new data arrives ──────── */
+@keyframes data-flash {
+  0%   { background: rgba(61,155,233,0.0); }
+  25%  { background: rgba(61,155,233,0.18); }
+  100% { background: rgba(61,155,233,0.0); }
+}
+.card.data-updated {
+  animation: data-flash .7s ease-out;
+}
 
 /* Safe area for iPhone/iPad notch */
 .hdr { padding-top: max(50px, env(safe-area-inset-top, 50px)) !important; }
@@ -111,6 +146,7 @@ html, body {
   overflow-y: scroll;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   padding-bottom: 72px;
   scroll-behavior: smooth;
 }
@@ -1664,6 +1700,7 @@ body.dev-mode-active #city-toggle-btn{display:inline-flex;}
 <div id="ptr-indicator">
   <span id="ptr-arrow">↓</span>
   <div id="ptr-spin"></div>
+  <span id="ptr-check">✓</span>
   <span id="ptr-text">下拉重新整理</span>
 </div>
 
@@ -2204,6 +2241,13 @@ async function loadLoc(loc){
     dbg('inf','→ '+loc.name);
     const [om,met]=await Promise.all([fetchOM(loc.lat,loc.lon), fetchMET(loc.lat,loc.lon,loc.alt)]);
     render(loc,om,met);
+    // Flash hero card to signal new data
+    const heroEl = document.getElementById(`${loc.key}-hero`);
+    if (heroEl) {
+      heroEl.classList.remove('data-updated');
+      void heroEl.offsetWidth; // reflow to restart animation
+      heroEl.classList.add('data-updated');
+    }
   } catch(err){
     console.error(loc.name,err);
     const k=loc.key;
@@ -2214,7 +2258,7 @@ async function loadLoc(loc){
     document.getElementById(`ts${loc.id}`).textContent='載入失敗';
   }
 }
-function loadAll(){ LOCS.forEach(l=>loadLoc(l)); }
+function loadAll(){ return Promise.all(LOCS.map(l=>loadLoc(l))); }
 
 /* ─── SWIPE NAVIGATION ───────────────────── */
 let cur=0;
@@ -2304,21 +2348,36 @@ document.addEventListener('keydown',e=>{
     }
   }, { passive: true });
 
-  function doRefresh() {
+  const ptrCheck = document.getElementById('ptr-check');
+
+  async function doRefresh() {
     ptr.style.transform = 'translateX(-50%) translateY(14px)';
     ptr.classList.add('refreshing');
     ptrText.textContent = '更新中…';
-    loadAll();
-    // Hide after 2s (data usually loads within that)
-    setTimeout(hidePTR, 2000);
+    const t0 = Date.now();
+    try {
+      await loadAll();
+    } catch(e) { /* individual errors handled in loadLoc */ }
+    // Ensure spinner shows for at least 500ms (feels more substantial)
+    const elapsed = Date.now() - t0;
+    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
+    // ── Success state ──────────────────────────
+    ptr.classList.remove('refreshing');
+    ptr.classList.add('success');
+    ptrText.textContent = '已更新';
+    // Hold success for 1.2s then hide
+    setTimeout(hidePTR, 1200);
   }
 
   function hidePTR() {
-    ptr.style.transform = '';
-    ptr.classList.remove('visible', 'refreshing');
-    ptrArrow.classList.remove('ready');
-    ptrText.textContent = '下拉重新整理';
-    pulling = false;
+    ptr.classList.add('hiding');
+    setTimeout(() => {
+      ptr.style.transform = '';
+      ptr.classList.remove('visible', 'refreshing', 'success', 'hiding');
+      ptrArrow.classList.remove('ready');
+      ptrText.textContent = '下拉重新整理';
+      pulling = false;
+    }, 300);
   }
 
   // Store touchstart X for horizontal detection
