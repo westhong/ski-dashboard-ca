@@ -401,7 +401,7 @@ html, body {
 
 /* City toggle button: shows flag of current city in header */
 #city-toggle-btn {
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   background: rgba(255,255,255,0.08);
@@ -426,9 +426,7 @@ html, body {
   flex-shrink: 0;
   background: rgba(255,255,255,0.05);
 }
-body.dev-mode-active #city-toggle-btn {
-  display: inline-flex;
-}
+/* city-toggle-btn always visible (v3.1) */
 
 #dev-city-bar{padding-top:max(calc(env(safe-area-inset-top,0px) + 6px),6px);}
 
