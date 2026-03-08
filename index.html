@@ -758,7 +758,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
 /* ═══════════════════════════════════════════
    HOURLY SCROLL
 ═══════════════════════════════════════════ */
-.hourly-wrap { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.hourly-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
 .hourly-wrap::-webkit-scrollbar { display: none; }
 .hourly-row { display: flex; gap: 6px; width: max-content; padding: 2px 0; }
 .h-item {
@@ -781,8 +781,9 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
   height: 36px; margin-top: 8px;
   width: max-content;
   overflow: hidden;
+  position: relative;
 }
-.mc-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 58px; gap: 1px; }
+.mc-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 58px; gap: 1px; height: 100%; }
 .mc-rain { background: rgba(61,155,233,.6); border-radius: 2px 2px 0 0; width: 18px; }
 .mc-snow { background: rgba(180,210,255,.7); border-radius: 2px 2px 0 0; width: 18px; }
 
