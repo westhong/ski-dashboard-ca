@@ -426,7 +426,7 @@ html, body {
   flex-shrink: 0;
   background: rgba(255,255,255,0.05);
 }
-/* city-toggle-btn always visible (v3.6.17) */
+/* city-toggle-btn always visible (v3.6.18) */
 
 #dev-city-bar{padding-top:max(calc(env(safe-area-inset-top,0px) + 6px),6px);}
 
@@ -573,7 +573,11 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
 .tmr-verdict.good  { background: rgba(67,201,140,0.2); color: #43c98c; border: 1px solid rgba(67,201,140,0.4); }
 .tmr-verdict.ok    { background: rgba(255,200,50,0.15); color: #ffc832; border: 1px solid rgba(255,200,50,0.3); }
 .tmr-verdict.bad   { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
-.tmr-verdict.melt  { background: rgba(255,160,50,0.18);  color: #ffa032; border: 1px solid rgba(255,160,50,0.35); }
+.tmr-verdict.melt    { background: rgba(255,160,50,0.18);  color: #ffa032; border: 1px solid rgba(255,160,50,0.35); }
+.tmr-verdict.thunder { background: rgba(220,50,50,0.18);   color: #ff4444; border: 1px solid rgba(220,50,50,0.35); }
+.tmr-verdict.rain    { background: rgba(60,150,255,0.18);  color: #4fa0ff; border: 1px solid rgba(60,150,255,0.35); }
+.tmr-verdict.slushy  { background: rgba(255,180,60,0.18);  color: #ffb840; border: 1px solid rgba(255,180,60,0.35); }
+.tmr-verdict.powder  { background: rgba(120,200,255,0.22); color: #78c8ff; border: 1px solid rgba(120,200,255,0.5); font-weight:800; }
 .tmr-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 8px;
@@ -738,10 +742,19 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
   padding: 2px 5px; border-radius: 8px; text-align: center;
   white-space: nowrap; line-height: 1.4;
 }
-.wski-tag.wski-v-good { background: rgba(67,201,140,0.2);  color: #43c98c; }
-.wski-tag.wski-v-ok   { background: rgba(255,200,50,0.15); color: #ffc832; }
-.wski-tag.wski-v-bad  { background: rgba(255,107,107,0.15); color: #ff6b6b; }
-.wski-tag.wski-v-melt { background: rgba(255,160,50,0.18);  color: #ffa032; }
+.wski-tag.wski-v-good    { background: rgba(67,201,140,0.2);    color: #43c98c; }
+.wski-tag.wski-v-ok      { background: rgba(255,200,50,0.15);   color: #ffc832; }
+.wski-tag.wski-v-bad     { background: rgba(255,107,107,0.15);  color: #ff6b6b; }
+.wski-tag.wski-v-melt    { background: rgba(255,160,50,0.18);   color: #ffa032; }
+.wski-tag.wski-v-thunder { background: rgba(220,50,50,0.2);     color: #ff4444; }
+.wski-tag.wski-v-rain    { background: rgba(60,150,255,0.18);   color: #4fa0ff; }
+.wski-tag.wski-v-slushy  { background: rgba(255,180,60,0.18);   color: #ffb840; }
+.wski-tag.wski-v-powder  { background: rgba(120,200,255,0.28);  color: #78c8ff; font-weight:800; }
+/* Day card border/bg for new verdicts */
+.wski-day.wski-thunder { border-color: rgba(220,50,50,0.35);   background: rgba(220,50,50,0.06); }
+.wski-day.wski-rain    { border-color: rgba(60,150,255,0.30);  background: rgba(60,150,255,0.05); }
+.wski-day.wski-slushy  { border-color: rgba(255,180,60,0.30);  background: rgba(255,180,60,0.05); }
+.wski-day.wski-powder  { border-color: rgba(120,200,255,0.45); background: rgba(120,200,255,0.09); }
 
 .tmr-verdict:hover
 /* ── History Chart ──────────────────────────── */
@@ -1424,7 +1437,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts0">—</div>
     </div>
@@ -1582,7 +1595,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skilouise.com · onthesnow.com
     </div>
 
@@ -1608,7 +1621,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts1">—</div>
     </div>
@@ -1766,7 +1779,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1792,7 +1805,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts2">—</div>
     </div>
@@ -1950,7 +1963,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -1976,7 +1989,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts3">—</div>
     </div>
@@ -2132,7 +2145,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：banffnorquay.com · onthesnow.com
     </div>
 
@@ -2154,7 +2167,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts4">—</div>
     </div>
@@ -2333,7 +2346,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skicastle.ca · onthesnow.com
     </div>
 
@@ -2358,7 +2371,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts5">—</div>
     </div>
@@ -2516,7 +2529,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skifernie.com · onthesnow.com
     </div>
 
@@ -2539,7 +2552,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts6">—</div>
     </div>
@@ -2697,7 +2710,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：kickinghorseresort.com · onthesnow.com
     </div>
 
@@ -2720,7 +2733,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts7">—</div>
     </div>
@@ -2878,7 +2891,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：panoramaresort.com · onthesnow.com
     </div>
 
@@ -2904,7 +2917,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.17</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.18</div>
       </div>
       <div class="ts" id="ts8">—</div>
     </div>
@@ -3028,7 +3041,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.17 · dashboard.westech.com.hk<br>
+      v3.6.18 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -3201,7 +3214,8 @@ function drawSunArc(arcId,sunId,riseStr,setStr,nowCityMin){
 /* ─── TMR ANALYSIS MODAL ─────────────────────────────────────── */
 const TMR_ANALYSIS = {};
 
-function buildTmrAnalysis(locName, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, windMax, amTemp, pmTemp, amFeel, pmFeel, tmrUV, isBadCode, verdictClass) {
+function buildTmrAnalysis(locName, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, gustMax, amTemp, pmTemp, amFeel, pmFeel, tmrUV, verdictClass) {
+  const windMax = gustMax; // alias used in stats/wind sections below
   const tmrDate = (() => {
     const d = new Date(); d.setDate(d.getDate()+1);
     return d.toLocaleDateString('zh-Hant',{month:'long',day:'numeric',weekday:'short'});
@@ -3210,28 +3224,39 @@ function buildTmrAnalysis(locName, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, wind
   let reasons = [];
 
   // ── Main verdict reason ──────────────────────────────────────
-  if (verdictClass === 'melt') {
-    reasonParts.push(`最高氣溫 <strong>+${tmrHi}°C</strong>，氣溫高於冰點，積雪正在融化，雪況惡化，不建議滑雪。`);
-  } else if (verdictClass === 'bad') {
-    if (isBadCode) {
-      const codeDesc = {95:'雷暴',96:'雷暴夾冰雹',99:'強雷暴夾冰雹',71:'小雪',73:'中雪',75:'大雪',77:'冰粒'}[tmrCode] || '惡劣天氣';
-      reasons.push(`天氣代碼顯示明日 <strong>${codeDesc}</strong>（WMO ${tmrCode}），屬於惡劣天氣類別，纜椅可能暫停運行。`);
-    }
-    if (windMax > 60) {
-      reasons.push(`最大陣風達 <strong>${Math.round(windMax)} km/h</strong>，超過纜椅安全運行閾值（60 km/h），高山纜椅極可能停運。`);
-    }
-    if (tmrHi < -12 && !isBadCode && windMax <= 60) {
-      reasons.push(`明日最高氣溫僅 <strong>${tmrHi}°C</strong>，極度嚴寒，體感溫度更低，對初學者及短暫暴露皮膚有風險。`);
-    }
-  } else if (verdictClass === 'good') {
-    if (tmrSnow > 5) {
-      reasons.push(`明日預計新雪 <strong>${tmrSnow.toFixed(0)} cm</strong>，符合「粉雪好日子」條件（新雪 > 5 cm），鬆雪滑行體驗絕佳。`);
+  if (verdictClass === 'thunder') {
+    const codeDesc = {95:'雷暴',96:'雷暴夾冰雹',99:'強雷暴夾冰雹'}[tmrCode];
+    if (codeDesc) {
+      reasons.push(`天氣代碼顯示明日 <strong>${codeDesc}</strong>（WMO ${tmrCode}），山上雷暴極度危險，應避免戶外高山活動。`);
     } else {
-      reasons.push(`明日最高氣溫 <strong>${tmrHi}°C</strong>，處於適滑溫度範圍（-5°C 以上），雪面狀況良好。`);
+      // blizzard (gusts + snow)
+      reasons.push(`明日陣風達 <strong>${Math.round(gustMax)} km/h</strong> 並有降雪 <strong>${tmrSnow.toFixed(0)} cm</strong>，屬暴風雪條件，能見度低，纜椅可能停運。`);
     }
+  } else if (verdictClass === 'rain') {
+    const codeDesc = {51:'毛毛雨',53:'毛毛雨',55:'濃毛毛雨',56:'凍雨',57:'凍雨',61:'小雨',63:'中雨',65:'大雨',66:'凍雨',67:'凍雨',80:'陣雨',81:'中陣雨',82:'大陣雨'}[tmrCode] || '降雨';
+    reasons.push(`明日預測 <strong>${codeDesc}</strong>（WMO ${tmrCode}），雨水令雪面變得濕重黏膩，滑行阻力大，且凍雨會在雪道表面形成冰殼，影響安全。`);
+  } else if (verdictClass === 'melt') {
+    reasons.push(`最高氣溫 <strong>+${tmrHi}°C</strong>，氣溫遠高於冰點，積雪快速融化，雪況惡化，不建議滑雪。`);
+  } else if (verdictClass === 'bad') {
+    if (gustMax > 70) {
+      reasons.push(`最大陣風達 <strong>${Math.round(gustMax)} km/h</strong>，超過纜椅安全運行閾值（70 km/h），高山纜椅極可能停運。`);
+    }
+    if (tmrHi < -18) {
+      reasons.push(`明日最高氣溫僅 <strong>${tmrHi}°C</strong>，極度嚴寒，體感溫度更低，有凍傷風險，不建議長時間戶外活動。`);
+    }
+  } else if (verdictClass === 'powder') {
+    reasons.push(`明日預計新雪 <strong>${tmrSnow.toFixed(0)} cm</strong>，在低溫 ${tmrHi}°C 下屬於絕佳粉雪條件（乾粉雪），鬆雪滑行體驗一流！`);
+  } else if (verdictClass === 'good') {
+    if (tmrSnow >= 3) {
+      reasons.push(`明日有 <strong>${tmrSnow.toFixed(0)} cm</strong> 新雪補充雪面，加上氣溫 <strong>${tmrHi}°C</strong>，雪況良好。`);
+    } else {
+      reasons.push(`明日最高氣溫 <strong>${tmrHi}°C</strong>，處於理想滑雪溫度（-5°C 至 +2°C），雪面狀況良好。`);
+    }
+  } else if (verdictClass === 'slushy') {
+    reasons.push(`明日最高氣溫 <strong>+${tmrHi}°C</strong>，高於冰點，雪面下午會偏軟偏濕，屬「春雪」狀態：早上雪況較佳，下午雪質黏膩，建議上午出發。`);
   } else {
-    // ok
-    reasons.push(`明日最高氣溫 <strong>${tmrHi}°C</strong>，處於「天氣尚可」範圍（-12°C 至 -5°C），穿著得當仍可舒適滑雪。`);
+    // ok — cold
+    reasons.push(`明日最高氣溫 <strong>${tmrHi}°C</strong>，偏冷但可以滑雪，穿著得當仍可舒適享受，雪質較乾爽。`);
   }
 
   // ── Temperature analysis ──────────────────────────────────────
@@ -3247,11 +3272,13 @@ function buildTmrAnalysis(locName, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, wind
   // ── Wind analysis ──────────────────────────────────────────────
   if (windMax > 0) {
     if (windMax <= 30) {
-      reasons.push(`風速 <strong>${Math.round(windMax)} km/h</strong>，屬輕風，不影響滑雪體驗。`);
-    } else if (windMax <= 60) {
-      reasons.push(`最大陣風 <strong>${Math.round(windMax)} km/h</strong>，中強風，山頂可能有陣風，建議留意纜椅公告。`);
+      reasons.push(`最大陣風 <strong>${Math.round(windMax)} km/h</strong>，屬輕風，不影響滑雪體驗。`);
+    } else if (windMax <= 50) {
+      reasons.push(`最大陣風 <strong>${Math.round(windMax)} km/h</strong>，中等偏強風，山頂可能有陣風，建議留意纜椅公告。`);
+    } else if (windMax <= 70) {
+      reasons.push(`最大陣風 <strong>${Math.round(windMax)} km/h</strong>，強風，部分高山纜椅可能暫停，滑雪前請確認纜椅開放狀態。`);
     }
-    // > 60 already handled in main reason
+    // > 70 km/h already handled in main reason block above
   }
 
   // ── Snow analysis ──────────────────────────────────────────────
@@ -3272,7 +3299,7 @@ function buildTmrAnalysis(locName, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, wind
   // ── Stats grid ─────────────────────────────────────────────────
   const stats = [
     { label: '🌡 最高 / 最低', value: `${tmrHi}° / ${tmrLo}°C`, sub: amFeel != null ? `早上體感 ${amFeel}°C` : '' },
-    { label: '💨 最大陣風', value: `${Math.round(windMax)} km/h`, sub: windMax > 60 ? '⚠️ 超過安全閾值' : windMax > 30 ? '注意山頂陣風' : '風速適中' },
+    { label: '💨 最大陣風', value: `${Math.round(windMax)} km/h`, sub: windMax > 70 ? '⚠️ 超過安全閾值(70km/h)' : windMax > 50 ? '⚠️ 強風留意纜椅' : windMax > 30 ? '注意山頂陣風' : '風速適中' },
     { label: '❄️ 新雪', value: tmrSnow > 0 ? `${tmrSnow.toFixed(0)} cm` : '無', sub: tmrSnow > 5 ? '🎿 粉雪條件' : tmrSnow > 0 ? '少量補雪' : `降水概率 ${tmrProb}%` },
     { label: '🔆 最高UV', value: tmrUV.toFixed(1), sub: tmrUV < 3 ? '低' : tmrUV < 6 ? '中等' : tmrUV < 8 ? '高' : '很高' },
   ];
@@ -3468,33 +3495,62 @@ function computeDaySkiVerdict(dateStr, daily, hourly, idx) {
   const code = daily.weathercode[idx];
   const hi   = daily.temperature_2m_max[idx];
   const snow = daily.snowfall_sum[idx] || 0;
-  const isBadCode = [95,96,99,71,73,75,77].includes(code);
-  let windMax = 0;
+
+  // Properly classify WMO weather codes
+  const isThunder = [95, 96, 99].includes(code);
+  const isRain    = [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code);
+  const isSnow    = [71,73,75,77,85,86].includes(code);
+
+  // Use wind GUSTS (not sustained wind) — gusts >70 km/h trigger lift closures
+  let gustMax = 0;
   if (hourly && hourly.time) {
     const idxs = [];
     for (let j = 0; j < hourly.time.length; j++) {
       if (hourly.time[j].startsWith(dateStr)) idxs.push(j);
     }
     if (idxs.length > 0) {
-      windMax = Math.max(...idxs.map(j =>
-        Math.max(hourly.windspeed_10m?.[j] ?? 0, hourly.windgusts_10m?.[j] ?? 0)
-      ));
+      gustMax = Math.max(...idxs.map(j => hourly.windgusts_10m?.[j] ?? 0));
     }
   }
+
   let verdict, verdictClass;
-  if (isBadCode || windMax > 60) {
-    verdict = '⚠️ 惡劣'; verdictClass = 'bad';
-  } else if (hi > 3) {
-    verdict = '🌡️ 雪融'; verdictClass = 'melt';  // too warm — snow melting
-  } else if (snow > 5 && hi >= -15) {
-    verdict = '🎿 粉雪'; verdictClass = 'good';
-  } else if (hi >= -5 && !isBadCode) {
+
+  // Priority (high → low):
+  if (isThunder) {
+    // 1. Thunderstorm — mountain thunderstorms are extremely dangerous
+    verdict = '⛈️ 雷暴'; verdictClass = 'thunder';
+  } else if (isRain) {
+    // 2. Rain — ruins snow surface, cold rain/sleet is miserable
+    verdict = '🌧️ 雨天'; verdictClass = 'rain';
+  } else if (hi > 7) {
+    // 3. Snow melt — above +7°C rapidly destroys snowpack
+    verdict = '🌡️ 雪融'; verdictClass = 'melt';
+  } else if (gustMax > 70 && isSnow) {
+    // 4. Blizzard — heavy snow + extreme gusts
+    verdict = '🌨️ 暴風雪'; verdictClass = 'thunder';
+  } else if (gustMax > 70) {
+    // 5. High wind alone — lifts likely closed
+    verdict = '💨 大風'; verdictClass = 'bad';
+  } else if (isSnow && snow >= 10 && hi <= 0) {
+    // 6. Powder day — significant snowfall + below freezing = best conditions!
+    verdict = '🎿 粉雪'; verdictClass = 'powder';
+  } else if (isSnow && snow >= 3) {
+    // 7. Good snow — some fresh snow adding to base
+    verdict = '❄️ 好雪'; verdictClass = 'good';
+  } else if (hi > 2 && hi <= 7) {
+    // 8. Slushy/spring snow — above freezing, wet & heavy snow
+    verdict = '🌡️ 春雪'; verdictClass = 'slushy';
+  } else if (hi >= -5 && hi <= 2) {
+    // 9. Suitable — ideal temperature range for groomed runs
     verdict = '✅ 適合'; verdictClass = 'good';
-  } else if (hi >= -12) {
-    verdict = '🧣 尚可'; verdictClass = 'ok';
+  } else if (hi >= -18) {
+    // 10. Cold — still skiable with proper gear
+    verdict = '🧣 偏冷'; verdictClass = 'ok';
   } else {
+    // 11. Extreme cold — frostbite risk
     verdict = '🥶 極寒'; verdictClass = 'bad';
   }
+
   return { verdict, verdictClass };
 }
 
@@ -3576,20 +3632,34 @@ function renderTomorrow(loc, om) {
   const pmTemp  = avgArr(pmIdx, h.temperature_2m);
   const pmFeel  = avgArr(pmIdx, h.apparent_temperature);
 
-  // Ski verdict logic
+  // Ski verdict logic — mirrors computeDaySkiVerdict
   let verdict, verdictClass;
-  const windMax = Math.max(...indices.map(i => h.windspeed_10m?.[i] ?? h.windgusts_10m?.[i] ?? 0).filter(Boolean));
-  const isBadCode = [95,96,99,71,73,75,77].includes(tmrCode);
-  if (isBadCode || windMax > 60) {
-    verdict = '⚠️ 風大或惡劣天氣'; verdictClass = 'bad';
-  } else if (tmrHi > 3) {
-    verdict = '🌡️ 氣溫偏高雪融'; verdictClass = 'melt';  // too warm — snow melting
-  } else if (tmrSnow > 5 && tmrHi >= -15) {
-    verdict = '🎿 粉雪好日子！'; verdictClass = 'good';
-  } else if (tmrHi >= -5 && !isBadCode) {
+  const gustMax = indices.length > 0
+    ? Math.max(...indices.map(i => h.windgusts_10m?.[i] ?? 0))
+    : 0;
+  const isThunder = [95, 96, 99].includes(tmrCode);
+  const isRain    = [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(tmrCode);
+  const isSnow    = [71,73,75,77,85,86].includes(tmrCode);
+  if (isThunder) {
+    verdict = '⛈️ 雷暴'; verdictClass = 'thunder';
+  } else if (isRain) {
+    verdict = '🌧️ 雨天'; verdictClass = 'rain';
+  } else if (tmrHi > 7) {
+    verdict = '🌡️ 氣溫偏高雪融'; verdictClass = 'melt';
+  } else if (gustMax > 70 && isSnow) {
+    verdict = '🌨️ 暴風雪'; verdictClass = 'thunder';
+  } else if (gustMax > 70) {
+    verdict = '💨 大風停纜'; verdictClass = 'bad';
+  } else if (isSnow && tmrSnow >= 10 && tmrHi <= 0) {
+    verdict = '🎿 粉雪好日子！'; verdictClass = 'powder';
+  } else if (isSnow && tmrSnow >= 3) {
+    verdict = '❄️ 好雪況'; verdictClass = 'good';
+  } else if (tmrHi > 2 && tmrHi <= 7) {
+    verdict = '🌡️ 春雪/軟雪'; verdictClass = 'slushy';
+  } else if (tmrHi >= -5 && tmrHi <= 2) {
     verdict = '✅ 適合滑雪'; verdictClass = 'good';
-  } else if (tmrHi >= -12) {
-    verdict = '🧣 天氣尚可'; verdictClass = 'ok';
+  } else if (tmrHi >= -18) {
+    verdict = '🧣 天氣偏冷'; verdictClass = 'ok';
   } else {
     verdict = '🥶 氣溫極低'; verdictClass = 'bad';
   }
@@ -3598,8 +3668,8 @@ function renderTomorrow(loc, om) {
   const desc = wmoDesc(tmrCode);
 
   // Store analysis data for modal
-  const _a = buildTmrAnalysis(loc.name, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, windMax,
-    amTemp, pmTemp, amFeel, pmFeel, tmrUV, isBadCode, verdictClass);
+  const _a = buildTmrAnalysis(loc.name, tmrHi, tmrLo, tmrCode, tmrSnow, tmrProb, gustMax,
+    amTemp, pmTemp, amFeel, pmFeel, tmrUV, verdictClass);
   TMR_ANALYSIS[loc.key] = { locName: loc.name, verdict, verdictClass,
     tmrDate: _a.tmrDate, reasonHTML: _a.reasonHTML, statsHTML: _a.statsHTML };
 
@@ -4116,7 +4186,7 @@ window.addEventListener('focus', ()=>{
 });
 
 // ══════════════════════════════════════════════════════════
-//  PWA + Push Notification  (v3.6.17)
+//  PWA + Push Notification  (v3.6.18)
 // ══════════════════════════════════════════════════════════
 const PUSH_WORKER_URL = '';
 let VAPID_PUBLIC_KEY = '';
@@ -4290,7 +4360,7 @@ const BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/
 const SCREWDRIVER_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 
-// ─── v3.6.17 City Config (mirrors _worker.js CITY_RESORTS) ──────────────────────
+// ─── v3.6.18 City Config (mirrors _worker.js CITY_RESORTS) ──────────────────────
 
 // ─── GEOLOCATION & PUBLIC CITY SWITCH (v3.4) ──────────────────────────────
 
@@ -4568,7 +4638,7 @@ async function devSwitchCity(cityKey) {
   }
 }
 
-// ─── v3.6.17 City Resort Data (used by devSwitchCity to update LOCS) ─────────────
+// ─── v3.6.18 City Resort Data (used by devSwitchCity to update LOCS) ─────────────
 // TZ per city for Open-Meteo requests
 const CITY_TZ = {
   calgary:   'America/Edmonton',
@@ -4703,11 +4773,11 @@ function updateCityToggleBtn(cityKey) {
 
 function enterDevMode() {
   document.body.classList.add('dev-mode-active');
-  // (v3.6.17 public: no beta-banner)
+  // (v3.6.18 public: no beta-banner)
   // ver-badge → "V3"
   document.querySelectorAll('.ver-badge').forEach(b => {
     if (!b.dataset.origText) b.dataset.origText = b.textContent;
-    b.textContent = 'v3.6.17';
+    b.textContent = 'v3.6.18';
     b.onclick = null;
   });
   // Bell → screwdriver
@@ -4738,7 +4808,7 @@ function exitDevMode() {
   document.body.classList.remove('dev-mode-active');
   closeDevPanel();
   closeCityPicker();
-  // (v3.6.17 public: no beta-banner to restore)
+  // (v3.6.18 public: no beta-banner to restore)
   // Restore ver-badge
   document.querySelectorAll('.ver-badge').forEach(b => {
     if (b.dataset.origText) b.textContent = b.dataset.origText;
@@ -4945,7 +5015,7 @@ async function devRefreshData() {
     <div class="dev-section-title">⚙️ 系統資訊</div>
     <div class="dev-row">
       <span class="dev-row-label">版本</span>
-      <span class="dev-row-value" id="dev-version-display">v3.1 → v3.6.17</span>
+      <span class="dev-row-value" id="dev-version-display">v3.1 → v3.6.18</span>
     </div>
     <div class="dev-row">
       <span class="dev-row-label">VAPID Key (前8碼)</span>
