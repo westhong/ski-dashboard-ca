@@ -426,7 +426,7 @@ html, body {
   flex-shrink: 0;
   background: rgba(255,255,255,0.05);
 }
-/* city-toggle-btn always visible (v3.6.20) */
+/* city-toggle-btn always visible (v3.6.21) */
 
 #dev-city-bar{padding-top:max(calc(env(safe-area-inset-top,0px) + 6px),6px);}
 
@@ -695,8 +695,13 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
   background: rgba(20,30,50,0.55);
   border: 1px solid rgba(120,160,220,0.18);
   border-radius: 14px;
-  padding: 10px 12px 8px;
+  padding: 10px 12px 10px;
   transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+.week-ski-card:hover {
+  border-color: rgba(160,200,255,0.38);
+  box-shadow: 0 2px 18px rgba(0,0,0,0.3);
 }
 .week-ski-card.prominent {
   background: linear-gradient(135deg, rgba(18,55,115,0.72), rgba(55,18,95,0.62));
@@ -711,51 +716,63 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
   background: linear-gradient(90deg, #a0c4f8, #c084fc, #a0c4f8);
 }
 .week-ski-card { position: relative; overflow: hidden; }
-.wski-header { margin-bottom: 7px; display: flex; align-items: center; }
+.wski-header { margin-bottom: 9px; display: flex; align-items: center; justify-content: space-between; }
 .wski-title {
   font-size: 11px; font-weight: 700; color: var(--muted, #8899aa);
   text-transform: uppercase; letter-spacing: 0.06em;
 }
+.wski-header-hint {
+  font-size: 10px; color: rgba(160,200,255,0.55);
+  display: flex; align-items: center; gap: 3px;
+}
+.wski-header-hint::after { content: '›'; font-size: 13px; opacity: 0.7; }
 .week-ski-card.prominent .wski-title { color: #a0c4f8; font-size: 12px; }
+.week-ski-card.prominent .wski-header-hint { color: rgba(160,200,255,0.75); }
 .wski-row {
-  display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px;
+  display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px;
   -ms-overflow-style: none; scrollbar-width: none;
   width: 100%;
 }
 .wski-row::-webkit-scrollbar { display: none; }
 .wski-day {
-  flex: 1 1 0; min-width: 44px; max-width: 70px;
+  flex: 1 1 0; min-width: 52px; max-width: 90px;
   display: flex; flex-direction: column; align-items: center;
-  padding: 8px 4px; border-radius: 10px;
+  padding: 10px 6px 8px; border-radius: 13px;
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.07);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.wski-day.wski-good { border-color: rgba(67,201,140,0.32); background: rgba(67,201,140,0.05); }
-.wski-day.wski-ok   { border-color: rgba(255,200,50,0.28); background: rgba(255,200,50,0.04); }
-.wski-day.wski-bad  { border-color: rgba(255,107,107,0.24); background: rgba(255,107,107,0.04); }
-.wski-day.wski-melt { border-color: rgba(255,160,50,0.3);   background: rgba(255,160,50,0.05); }
-.wski-lbl   { font-size: 10px; color: var(--muted, #8899aa); margin-bottom: 3px; font-weight: 500; }
-.wski-ico   { font-size: 17px; margin-bottom: 3px; line-height: 1; }
-.wski-temp  { font-size: 11px; font-weight: 700; color: var(--text, #e0e8ff); }
-.wski-lo    { font-size: 10px; color: var(--muted, #8899aa); font-weight: 400; }
+.wski-day:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+.wski-day:active { transform: translateY(0); }
+.wski-day.wski-good   { border-color: rgba(67,201,140,0.40); background: rgba(67,201,140,0.07); }
+.wski-day.wski-ok     { border-color: rgba(255,200,50,0.35);  background: rgba(255,200,50,0.06); }
+.wski-day.wski-bad    { border-color: rgba(255,107,107,0.30); background: rgba(255,107,107,0.06); }
+.wski-day.wski-melt   { border-color: rgba(255,160,50,0.38);  background: rgba(255,160,50,0.07); }
+.wski-day.wski-thunder{ border-color: rgba(220,50,50,0.45);   background: rgba(220,50,50,0.08); }
+.wski-day.wski-rain   { border-color: rgba(60,150,255,0.38);  background: rgba(60,150,255,0.07); }
+.wski-day.wski-slushy { border-color: rgba(255,180,60,0.38);  background: rgba(255,180,60,0.07); }
+.wski-day.wski-powder { border-color: rgba(120,200,255,0.55); background: rgba(120,200,255,0.11); box-shadow: 0 0 12px rgba(120,200,255,0.18); }
+.wski-lbl  { font-size: 11px; color: var(--muted, #8899aa); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.02em; }
+.wski-ico  { font-size: 22px; margin-bottom: 4px; line-height: 1; }
+.wski-temp { font-size: 12px; font-weight: 700; color: var(--text, #e0e8ff); }
+.wski-lo   { font-size: 10.5px; color: var(--muted, #8899aa); font-weight: 400; }
+.wski-snow-bar { width: 80%; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 5px; overflow: hidden; }
+.wski-snow-fill{ height: 100%; border-radius: 2px; background: linear-gradient(90deg,#78c8ff,#a0e0ff); }
 .wski-tag {
-  margin-top: 5px; font-size: 9.5px; font-weight: 700;
-  padding: 2px 4px; border-radius: 8px; text-align: center;
+  margin-top: 5px; font-size: 9px; font-weight: 700;
+  padding: 2px 5px; border-radius: 8px; text-align: center;
   white-space: normal; word-break: keep-all; line-height: 1.3;
+  max-width: 100%;
 }
-.wski-tag.wski-v-good    { background: rgba(67,201,140,0.2);    color: #43c98c; }
-.wski-tag.wski-v-ok      { background: rgba(255,200,50,0.15);   color: #ffc832; }
-.wski-tag.wski-v-bad     { background: rgba(255,107,107,0.15);  color: #ff6b6b; }
-.wski-tag.wski-v-melt    { background: rgba(255,160,50,0.18);   color: #ffa032; }
-.wski-tag.wski-v-thunder { background: rgba(220,50,50,0.2);     color: #ff4444; }
-.wski-tag.wski-v-rain    { background: rgba(60,150,255,0.18);   color: #4fa0ff; }
-.wski-tag.wski-v-slushy  { background: rgba(255,180,60,0.18);   color: #ffb840; }
-.wski-tag.wski-v-powder  { background: rgba(120,200,255,0.28);  color: #78c8ff; font-weight:800; }
-/* Day card border/bg for new verdicts */
-.wski-day.wski-thunder { border-color: rgba(220,50,50,0.35);   background: rgba(220,50,50,0.06); }
-.wski-day.wski-rain    { border-color: rgba(60,150,255,0.30);  background: rgba(60,150,255,0.05); }
-.wski-day.wski-slushy  { border-color: rgba(255,180,60,0.30);  background: rgba(255,180,60,0.05); }
-.wski-day.wski-powder  { border-color: rgba(120,200,255,0.45); background: rgba(120,200,255,0.09); }
+.wski-tag.wski-v-good    { background: rgba(67,201,140,0.22);   color: #43c98c; }
+.wski-tag.wski-v-ok      { background: rgba(255,200,50,0.18);   color: #ffc832; }
+.wski-tag.wski-v-bad     { background: rgba(255,107,107,0.18);  color: #ff6b6b; }
+.wski-tag.wski-v-melt    { background: rgba(255,160,50,0.20);   color: #ffa032; }
+.wski-tag.wski-v-thunder { background: rgba(220,50,50,0.22);    color: #ff4444; }
+.wski-tag.wski-v-rain    { background: rgba(60,150,255,0.20);   color: #4fa0ff; }
+.wski-tag.wski-v-slushy  { background: rgba(255,180,60,0.20);   color: #ffb840; }
+.wski-tag.wski-v-powder  { background: rgba(120,200,255,0.30);  color: #78c8ff; font-weight:800; letter-spacing: 0.02em; }
 
 .tmr-verdict:hover
 /* ── History Chart ──────────────────────────── */
@@ -1320,6 +1337,114 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
    Keep dev mode as-is (already uses padding-top:38px to clear dev banner).  */
 
 
+
+/* ── 10-Day Ski Modal ─────────────────────────────────────── */
+#ski10d-overlay {
+  display: none; position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,0.78); align-items: center; justify-content: center;
+  padding: 12px 0; backdrop-filter: blur(6px);
+}
+#ski10d-overlay.open { display: flex; flex-direction: column; }
+#ski10d-box {
+  width: 100%; max-width: 420px;
+  background: linear-gradient(160deg, rgba(18,35,75,0.97) 0%, rgba(30,15,65,0.97) 100%);
+  border: 1.5px solid rgba(160,200,255,0.30);
+  border-radius: 22px;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+  margin: 0 16px;
+}
+#ski10d-box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,#4fa0ff,#a78bfa,#78c8ff,#4fa0ff);
+  background-size: 200% 100%; animation: shimmer10d 3s linear infinite;
+}
+@keyframes shimmer10d { 0%{background-position:0 0} 100%{background-position:200% 0} }
+#ski10d-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+#ski10d-resort-name {
+  font-size: 13px; font-weight: 700; color: #a0c4f8; letter-spacing: 0.04em;
+}
+#ski10d-subtitle { font-size: 10px; color: rgba(160,200,255,0.55); margin-top: 1px; }
+#ski10d-close {
+  background: rgba(255,255,255,0.08); border: none; color: #ccd;
+  width: 28px; height: 28px; border-radius: 50%; font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+#ski10d-close:hover { background: rgba(255,255,255,0.18); }
+
+/* Swipe container */
+#ski10d-track-wrap {
+  overflow: hidden; position: relative; touch-action: pan-y;
+}
+#ski10d-track {
+  display: flex; transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+.ski10d-slide {
+  min-width: 100%; padding: 16px 20px 20px;
+  box-sizing: border-box;
+}
+.ski10d-date-row {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;
+}
+.ski10d-day-label {
+  font-size: 16px; font-weight: 800; color: #e8f0ff;
+}
+.ski10d-date-str {
+  font-size: 11px; color: rgba(160,200,255,0.6);
+}
+.ski10d-main {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+}
+.ski10d-icon { font-size: 42px; line-height: 1; flex-shrink: 0; }
+.ski10d-verdict-wrap { flex: 1; }
+.ski10d-verdict-badge {
+  display: inline-block; font-size: 13px; font-weight: 800;
+  padding: 4px 10px; border-radius: 20px; margin-bottom: 6px;
+}
+.ski10d-desc { font-size: 11.5px; color: rgba(200,215,240,0.8); line-height: 1.5; }
+.ski10d-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.ski10d-stat {
+  background: rgba(255,255,255,0.05); border-radius: 10px;
+  padding: 8px 6px; text-align: center;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.ski10d-stat-val { font-size: 15px; font-weight: 700; color: #e0e8ff; }
+.ski10d-stat-lbl { font-size: 9.5px; color: rgba(160,200,255,0.6); margin-top: 2px; }
+.ski10d-snow-section { margin-bottom: 4px; }
+.ski10d-snow-label { font-size: 10px; color: rgba(160,200,255,0.6); margin-bottom: 4px; }
+.ski10d-snow-bar-bg { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow:hidden; }
+.ski10d-snow-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#4fa0ff,#78c8ff); transition: width 0.4s; }
+
+/* Navigation */
+#ski10d-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px 14px;
+}
+.ski10d-arrow {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  color: #a0c4f8; width: 36px; height: 36px; border-radius: 50%;
+  font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.1s;
+}
+.ski10d-arrow:hover { background: rgba(255,255,255,0.18); transform: scale(1.08); }
+.ski10d-arrow:disabled { opacity: 0.25; cursor: default; transform: none; }
+#ski10d-dots { display: flex; gap: 5px; align-items: center; }
+.ski10d-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.18); transition: all 0.25s;
+}
+.ski10d-dot.active { background: #a0c4f8; width: 18px; border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -1438,7 +1563,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts0">—</div>
     </div>
@@ -1596,7 +1721,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skilouise.com · onthesnow.com
     </div>
 
@@ -1622,7 +1747,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts1">—</div>
     </div>
@@ -1780,7 +1905,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skibanff.com · skiresort.info
     </div>
 
@@ -1806,7 +1931,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts2">—</div>
     </div>
@@ -1964,7 +2089,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skinakiska.com · onthesnow.com
     </div>
 
@@ -1990,7 +2115,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts3">—</div>
     </div>
@@ -2146,7 +2271,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：banffnorquay.com · onthesnow.com
     </div>
 
@@ -2168,7 +2293,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts4">—</div>
     </div>
@@ -2347,7 +2472,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skicastle.ca · onthesnow.com
     </div>
 
@@ -2372,7 +2497,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts5">—</div>
     </div>
@@ -2530,7 +2655,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：skifernie.com · onthesnow.com
     </div>
 
@@ -2553,7 +2678,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts6">—</div>
     </div>
@@ -2711,7 +2836,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：kickinghorseresort.com · onthesnow.com
     </div>
 
@@ -2734,7 +2859,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts7">—</div>
     </div>
@@ -2892,7 +3017,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       天氣：Open-Meteo · MET Norway ｜ 雪場：panoramaresort.com · onthesnow.com
     </div>
 
@@ -2918,7 +3043,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
         </svg>
       </button>
         <button id="city-toggle-btn" onclick="openCityPicker()" title="切換城市"><img class="ctb-flag" src="" alt="flag" onerror="this.style.opacity='0.3'"><span class="ctb-text">城市</span></button>
-        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.20</div>
+        <div class="ver-badge" onclick="document.getElementById('debug-panel').classList.toggle('on')">v3.6.21</div>
       </div>
       <div class="ts" id="ts8">—</div>
     </div>
@@ -3042,7 +3167,7 @@ body.dev-mode-active #push-bell-btn svg path{stroke:#ff6b6b;}
     </div>
 
     <div class="vfooter full">
-      v3.6.20 · dashboard.westech.com.hk<br>
+      v3.6.21 · dashboard.westech.com.hk<br>
       資料來源：Open-Meteo (ECMWF/GFS) · MET Norway Yr.no · 每 15 分鐘自動更新
     </div>
 
@@ -3491,6 +3616,203 @@ function closeTmrModal() {
   document.body.style.overflow = '';
 }
 
+/* ─── 10-Day Ski Forecast Modal ──────────────────────────── */
+let _ski10dIdx = 0;
+let _ski10dTotal = 0;
+let _ski10dStartX = 0;
+let _ski10dDragging = false;
+let _ski10dDragDelta = 0;
+
+function ski10dVerdictBadgeStyle(verdictClass) {
+  const styles = {
+    powder:  'background:rgba(120,200,255,0.28);color:#78c8ff;border:1px solid rgba(120,200,255,0.4)',
+    good:    'background:rgba(67,201,140,0.22);color:#43c98c;border:1px solid rgba(67,201,140,0.3)',
+    ok:      'background:rgba(255,200,50,0.18);color:#ffc832;border:1px solid rgba(255,200,50,0.3)',
+    bad:     'background:rgba(255,107,107,0.18);color:#ff6b6b;border:1px solid rgba(255,107,107,0.3)',
+    thunder: 'background:rgba(220,50,50,0.22);color:#ff4444;border:1px solid rgba(220,50,50,0.35)',
+    rain:    'background:rgba(60,150,255,0.20);color:#4fa0ff;border:1px solid rgba(60,150,255,0.32)',
+    melt:    'background:rgba(255,160,50,0.20);color:#ffa032;border:1px solid rgba(255,160,50,0.32)',
+    slushy:  'background:rgba(255,180,60,0.20);color:#ffb840;border:1px solid rgba(255,180,60,0.32)',
+  };
+  return styles[verdictClass] || styles.ok;
+}
+
+function ski10dDescForClass(verdictClass, hi, snow, gustMax) {
+  const g = Math.round(gustMax||0);
+  const s = (snow||0).toFixed(1);
+  switch(verdictClass) {
+    case 'powder':  return `氣溫 ${hi}°C，新雪 ${s} cm，粉雪條件絕佳！鬆雪愛好者最愛之日。${g>60?` 陣風 ${g} km/h，請留意纜椅公告。`:''}`;
+    case 'good':    return `氣溫 ${hi}°C，有 ${s} cm 新雪補充雪面，雪況良好適合滑雪。`;
+    case 'ok':      return `氣溫 ${hi}°C，偏冷但雪質乾爽，保暖得當可享受舒適滑行。`;
+    case 'bad':     return g > 70
+      ? `陣風達 ${g} km/h，超過纜椅安全閾值，高山纜椅可能停運。`
+      : `最高氣溫 ${hi}°C，極度嚴寒，有凍傷風險，請充分保暖。`;
+    case 'thunder': return `預測雷暴，山上活動極度危險，應避免上山。`;
+    case 'rain':    return `預測降雨，雪面濕重黏膩，滑行體驗差，凍雨更會造成冰殼，注意安全。`;
+    case 'melt':    return `最高氣溫 ${hi}°C，積雪快速融化，雪況惡化，不建議滑雪。`;
+    case 'slushy':  return `氣溫 ${hi}°C，雪面下午偏軟偏濕（春雪），早上出發雪況較佳。`;
+    default:        return `最高氣溫 ${hi}°C。`;
+  }
+}
+
+function openSki10d(key, daily, hourly) {
+  const overlay = document.getElementById('ski10d-overlay');
+  const track = document.getElementById('ski10d-track');
+  const dotsEl = document.getElementById('ski10d-dots');
+  const resortEl = document.getElementById('ski10d-resort-name');
+  if (!overlay || !track) return;
+
+  // Resolve resort name from loc key
+  const locName = (() => {
+    const locEl = document.querySelector(`[data-key="${key}"] .hero-label`) ||
+                  document.querySelector(`#${key}-hero .hero-label`);
+    if (locEl) return locEl.textContent.replace(/·.*$/, '').trim();
+    const map = {c0:'Lake Louise',c1:'Sunshine Village',c2:'Nakiska',c3:'Mt Norquay',c4:'Fernie',c5:'Kicking Horse',c6:'Revelstoke',c7:'Marmot Basin'};
+    return map[key] || key;
+  })();
+  resortEl.innerHTML = `⛷️ ${locName}`;
+
+  const totalDays = Math.min(10, daily.time.length);
+  _ski10dTotal = totalDays;
+  _ski10dIdx = 0;
+
+  // Build slides
+  let slides = '';
+  for (let i = 0; i < totalDays; i++) {
+    const dateStr = daily.time[i];
+    const dt = new Date(dateStr + 'T12:00');
+    const dayLbl = i === 0 ? '今天' : i === 1 ? '明天'
+      : dt.toLocaleDateString('zh-Hant', {weekday: 'long'});
+    const dateDisp = dt.toLocaleDateString('zh-Hant', {month:'numeric', day:'numeric'});
+    const icon = wmoIcon(daily.weathercode[i], true);
+    const hi = Math.round(daily.temperature_2m_max[i]);
+    const lo = Math.round(daily.temperature_2m_min[i]);
+    const snow = daily.snowfall_sum[i] || 0;
+    const prob = daily.precipitation_probability_max?.[i] || 0;
+    const uv   = (daily.uv_index_max?.[i] || 0).toFixed(1);
+
+    // Compute gust for this day
+    let gustMax = 0;
+    if (hourly && hourly.time) {
+      for (let j = 0; j < hourly.time.length; j++) {
+        if (hourly.time[j].startsWith(dateStr)) {
+          const g = hourly.windgusts_10m?.[j] ?? 0;
+          if (g > gustMax) gustMax = g;
+        }
+      }
+    }
+    const {verdict, verdictClass} = computeDaySkiVerdict(dateStr, daily, hourly, i);
+    const badgeStyle = ski10dVerdictBadgeStyle(verdictClass);
+    const desc = ski10dDescForClass(verdictClass, hi, snow, gustMax);
+    const snowPct = Math.min(100, (snow / 20) * 100).toFixed(0);
+
+    slides += `<div class="ski10d-slide">
+  <div class="ski10d-date-row">
+    <span class="ski10d-day-label">${dayLbl}</span>
+    <span class="ski10d-date-str">${dateDisp}</span>
+  </div>
+  <div class="ski10d-main">
+    <div class="ski10d-icon">${icon}</div>
+    <div class="ski10d-verdict-wrap">
+      <div class="ski10d-verdict-badge" style="${badgeStyle}">${verdict}</div>
+      <div class="ski10d-desc">${desc}</div>
+    </div>
+  </div>
+  <div class="ski10d-stats">
+    <div class="ski10d-stat">
+      <div class="ski10d-stat-val">${hi}° <span style="font-size:11px;opacity:.6">/ ${lo}°</span></div>
+      <div class="ski10d-stat-lbl">最高/最低</div>
+    </div>
+    <div class="ski10d-stat">
+      <div class="ski10d-stat-val">${snow > 0 ? snow.toFixed(1)+' cm' : '—'}</div>
+      <div class="ski10d-stat-lbl">預計新雪</div>
+    </div>
+    <div class="ski10d-stat">
+      <div class="ski10d-stat-val">${gustMax > 0 ? Math.round(gustMax)+' km/h' : '—'}</div>
+      <div class="ski10d-stat-lbl">最大陣風</div>
+    </div>
+    <div class="ski10d-stat">
+      <div class="ski10d-stat-val">${prob}%</div>
+      <div class="ski10d-stat-lbl">降水機率</div>
+    </div>
+    <div class="ski10d-stat">
+      <div class="ski10d-stat-val">${uv}</div>
+      <div class="ski10d-stat-lbl">UV 指數</div>
+    </div>
+    <div class="ski10d-stat">
+      <div class="ski10d-stat-val" style="font-size:18px">${verdictClass==='powder'?'🎿':verdictClass==='good'?'❄️':verdictClass==='ok'?'🧣':verdictClass==='rain'?'🌧️':verdictClass==='thunder'?'⛈️':verdictClass==='melt'?'🌡️':verdictClass==='slushy'?'🌡️':'❌'}</div>
+      <div class="ski10d-stat-lbl">評級</div>
+    </div>
+  </div>
+  ${snow > 0 ? `<div class="ski10d-snow-section">
+    <div class="ski10d-snow-label">新雪量 ${snow.toFixed(1)} cm（參考最大 20 cm）</div>
+    <div class="ski10d-snow-bar-bg"><div class="ski10d-snow-bar-fill" style="width:${snowPct}%"></div></div>
+  </div>` : ''}
+</div>`;
+  }
+  track.innerHTML = slides;
+  track.style.transform = 'translateX(0)';
+
+  // Build dots
+  let dotsHtml = '';
+  for (let i = 0; i < totalDays; i++) {
+    dotsHtml += `<div class="ski10d-dot${i===0?' active':''}" id="ski10d-dot-${i}"></div>`;
+  }
+  dotsEl.innerHTML = dotsHtml;
+
+  // Update arrows
+  document.getElementById('ski10d-prev').disabled = true;
+  document.getElementById('ski10d-next').disabled = totalDays <= 1;
+
+  // Touch swipe
+  const trackWrap = document.getElementById('ski10d-track-wrap');
+  trackWrap.ontouchstart = e => { _ski10dStartX = e.touches[0].clientX; _ski10dDragging = true; _ski10dDragDelta = 0; };
+  trackWrap.ontouchmove = e => {
+    if (!_ski10dDragging) return;
+    _ski10dDragDelta = e.touches[0].clientX - _ski10dStartX;
+    track.style.transition = 'none';
+    track.style.transform = `translateX(calc(-${_ski10dIdx * 100}% + ${_ski10dDragDelta}px))`;
+  };
+  trackWrap.ontouchend = () => {
+    _ski10dDragging = false;
+    track.style.transition = '';
+    if (_ski10dDragDelta < -50 && _ski10dIdx < _ski10dTotal - 1) ski10dGo(1);
+    else if (_ski10dDragDelta > 50 && _ski10dIdx > 0) ski10dGo(-1);
+    else track.style.transform = `translateX(-${_ski10dIdx * 100}%)`;
+    _ski10dDragDelta = 0;
+  };
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSki10d() {
+  document.getElementById('ski10d-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function ski10dGo(dir) {
+  const newIdx = _ski10dIdx + dir;
+  if (newIdx < 0 || newIdx >= _ski10dTotal) return;
+  _ski10dIdx = newIdx;
+  const track = document.getElementById('ski10d-track');
+  track.style.transform = `translateX(-${_ski10dIdx * 100}%)`;
+  // Update dots
+  document.querySelectorAll('.ski10d-dot').forEach((d,i) => d.classList.toggle('active', i===_ski10dIdx));
+  // Update arrows
+  document.getElementById('ski10d-prev').disabled = _ski10dIdx === 0;
+  document.getElementById('ski10d-next').disabled = _ski10dIdx === _ski10dTotal - 1;
+}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('ski10d-overlay').classList.contains('open')) return;
+  if (e.key === 'ArrowRight') ski10dGo(1);
+  if (e.key === 'ArrowLeft') ski10dGo(-1);
+  if (e.key === 'Escape') closeSki10d();
+});
+
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTmrModal(); });
 
 
@@ -3576,8 +3898,12 @@ function renderWeekSki(key, daily, hourly, cityHourNow) {
   if (!el) return;
   const isAfter16 = cityHourNow >= 16;
   el.className = 'week-ski-card' + (isAfter16 ? ' prominent' : '');
+  // Store forecast data for 10-day modal
+  el._skiData = { key, daily, hourly };
+  el.onclick = () => openSki10d(key, daily, hourly);
   let daysHtml = '';
-  for (let i = 0; i < 7; i++) {
+  const showDays = 5; // show 5 days for better UI quality
+  for (let i = 0; i < showDays; i++) {
     const dateStr = daily.time[i];
     const dt = new Date(dateStr + 'T12:00');
     const dayLbl = i === 0 ? '今天' : i === 1 ? '明天'
@@ -3585,15 +3911,25 @@ function renderWeekSki(key, daily, hourly, cityHourNow) {
     const icon = wmoIcon(daily.weathercode[i], true);
     const hi = Math.round(daily.temperature_2m_max[i]);
     const lo = Math.round(daily.temperature_2m_min[i]);
+    const snow = daily.snowfall_sum[i] || 0;
     const {verdict, verdictClass} = computeDaySkiVerdict(dateStr, daily, hourly, i);
+    // Mini snow bar (max reference = 20 cm)
+    const snowPct = Math.min(100, (snow / 20) * 100);
+    const snowBarHtml = snow > 0
+      ? `<div class="wski-snow-bar"><div class="wski-snow-fill" style="width:${snowPct.toFixed(0)}%"></div></div>`
+      : `<div class="wski-snow-bar"></div>`;
     daysHtml += `<div class="wski-day wski-${verdictClass}">
   <div class="wski-lbl">${dayLbl}</div>
   <div class="wski-ico">${icon}</div>
   <div class="wski-temp">${hi}° <span class="wski-lo">${lo}°</span></div>
+  ${snowBarHtml}
   <div class="wski-tag wski-v-${verdictClass}">${verdict}</div>
 </div>`;
   }
-  el.innerHTML = `<div class="wski-header"><span class="wski-title">⛷️ 7天滑雪指數</span></div>
+  el.innerHTML = `<div class="wski-header">
+  <span class="wski-title">⛷️ 5天滑雪指數</span>
+  <span class="wski-header-hint">10天預測</span>
+</div>
 <div class="wski-row">${daysHtml}</div>`;
 }
 
@@ -4010,7 +4346,7 @@ async function fetchOM(lat,lon,tz){
     `precipitation_probability,surface_pressure,visibility`+
     `&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,`+
     `precipitation_sum,snowfall_sum,precipitation_probability_max,uv_index_max`+
-    `&timezone=${tz||'America/Edmonton'}&forecast_days=8&current_weather=true`;
+    `&timezone=${tz||'America/Edmonton'}&forecast_days=10&current_weather=true`;
   return fetchWithRetry(url, {mode:'cors', cache:'no-cache'});
 }
 async function fetchMET(lat,lon,alt){
@@ -4205,7 +4541,7 @@ window.addEventListener('focus', ()=>{
 });
 
 // ══════════════════════════════════════════════════════════
-//  PWA + Push Notification  (v3.6.20)
+//  PWA + Push Notification  (v3.6.21)
 // ══════════════════════════════════════════════════════════
 const PUSH_WORKER_URL = '';
 let VAPID_PUBLIC_KEY = '';
@@ -4379,7 +4715,7 @@ const BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/
 const SCREWDRIVER_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 
-// ─── v3.6.20 City Config (mirrors _worker.js CITY_RESORTS) ──────────────────────
+// ─── v3.6.21 City Config (mirrors _worker.js CITY_RESORTS) ──────────────────────
 
 // ─── GEOLOCATION & PUBLIC CITY SWITCH (v3.4) ──────────────────────────────
 
@@ -4657,7 +4993,7 @@ async function devSwitchCity(cityKey) {
   }
 }
 
-// ─── v3.6.20 City Resort Data (used by devSwitchCity to update LOCS) ─────────────
+// ─── v3.6.21 City Resort Data (used by devSwitchCity to update LOCS) ─────────────
 // TZ per city for Open-Meteo requests
 const CITY_TZ = {
   calgary:   'America/Edmonton',
@@ -4792,11 +5128,11 @@ function updateCityToggleBtn(cityKey) {
 
 function enterDevMode() {
   document.body.classList.add('dev-mode-active');
-  // (v3.6.20 public: no beta-banner)
+  // (v3.6.21 public: no beta-banner)
   // ver-badge → "V3"
   document.querySelectorAll('.ver-badge').forEach(b => {
     if (!b.dataset.origText) b.dataset.origText = b.textContent;
-    b.textContent = 'v3.6.20';
+    b.textContent = 'v3.6.21';
     b.onclick = null;
   });
   // Bell → screwdriver
@@ -4827,7 +5163,7 @@ function exitDevMode() {
   document.body.classList.remove('dev-mode-active');
   closeDevPanel();
   closeCityPicker();
-  // (v3.6.20 public: no beta-banner to restore)
+  // (v3.6.21 public: no beta-banner to restore)
   // Restore ver-badge
   document.querySelectorAll('.ver-badge').forEach(b => {
     if (b.dataset.origText) b.textContent = b.dataset.origText;
@@ -5034,7 +5370,7 @@ async function devRefreshData() {
     <div class="dev-section-title">⚙️ 系統資訊</div>
     <div class="dev-row">
       <span class="dev-row-label">版本</span>
-      <span class="dev-row-value" id="dev-version-display">v3.1 → v3.6.20</span>
+      <span class="dev-row-value" id="dev-version-display">v3.1 → v3.6.21</span>
     </div>
     <div class="dev-row">
       <span class="dev-row-label">VAPID Key (前8碼)</span>
@@ -5069,6 +5405,28 @@ async function devRefreshData() {
 
 
 <!-- Tomorrow Analysis Modal -->
+
+<!-- ── 10-Day Ski Forecast Modal ─────────────────────────── -->
+<div id="ski10d-overlay" onclick="if(event.target===this)closeSki10d()">
+  <div id="ski10d-box">
+    <div id="ski10d-header">
+      <div>
+        <div id="ski10d-resort-name">⛷️ 滑雪指數</div>
+        <div id="ski10d-subtitle">未來 10 天詳細預測</div>
+      </div>
+      <button id="ski10d-close" onclick="closeSki10d()" aria-label="關閉">✕</button>
+    </div>
+    <div id="ski10d-track-wrap">
+      <div id="ski10d-track" id="ski10d-track"></div>
+    </div>
+    <div id="ski10d-nav">
+      <button class="ski10d-arrow" id="ski10d-prev" onclick="ski10dGo(-1)" aria-label="上一天">‹</button>
+      <div id="ski10d-dots"></div>
+      <button class="ski10d-arrow" id="ski10d-next" onclick="ski10dGo(1)" aria-label="下一天">›</button>
+    </div>
+  </div>
+</div>
+
 <div id="tmr-modal-overlay" onclick="if(event.target===this)closeTmrModal()">
   <div id="tmr-modal-box">
     <button id="tmr-modal-close" onclick="closeTmrModal()" aria-label="關閉">✕</button>
