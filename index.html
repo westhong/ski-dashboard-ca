@@ -5981,8 +5981,38 @@ async function devRefreshData() {
 
 /* ─── SNOW REPORT MODAL ──────────────────────────────────────── */
 function openSnowModal(key) {
-  const d = SNOW_REPORTS[key];
+  // Check if current city matches snow report data
+  const idx = parseInt(key.replace('c',''));
+  const curCity = typeof activeCity !== 'undefined' ? activeCity : 'calgary';
+  const cityLocs = (typeof CITY_LOCS !== 'undefined' && CITY_LOCS[curCity]) ? CITY_LOCS[curCity] : null;
+  const curResort = cityLocs ? cityLocs[idx] : null;
+
+  let d = SNOW_REPORTS[key];
   if (!d) return;
+
+  // If current city isn't Calgary, show placeholder with correct resort info
+  if (curResort && d && d.name !== curResort.name) {
+    d = {
+      name: curResort.name,
+      website: 'https://www.' + curResort.website,
+      websiteLabel: curResort.website,
+      accent: '#a0c4f8',
+      date: '即時天氣資料',
+      topSnow: null, topElev: curResort.alt,
+      baseSnow: null, baseElev: null,
+      overnight: '—', seasonTotal: '—',
+      snowQuality: '—',
+      season: '—',
+      runsOpen: null, runsTotal: null,
+      lifts: [],
+      runs: {green:{pct:0,count:0}, blue:{pct:0,count:0}, black:{pct:0,count:0}, dblBlack:{pct:0,count:0}},
+      terrainTypes: [],
+      famousRuns: [],
+      hiddenGem: '此城市的詳細雪況資料即將推出。',
+      notes: '天氣由 Open-Meteo 提供。詳細雪況請訪問官方網站。\n⚠️ 詳細雪況資料目前僅支援卡加利城市雪場。'
+    };
+  }
+
   const overlay = document.getElementById('snow-modal-overlay');
 
   // difficulty config
@@ -6065,11 +6095,11 @@ function openSnowModal(key) {
     '<div class="snow-modal-stats-grid">' +
       '<div class="snow-modal-stat">' +
         '<div class="snow-modal-stat-lbl">&#x1F3D4; &#x5C71;&#x9802;&#x7A4D;&#x96EA; (' + d.topElev + 'm)</div>' +
-        '<div class="snow-modal-stat-val" style="color:#a0c4f8">' + d.topSnow + '<span style="font-size:13px;font-weight:400">cm</span></div>' +
+        '<div class="snow-modal-stat-val" style="color:#a0c4f8">' + (d.topSnow !== null ? d.topSnow + '<span style="font-size:13px;font-weight:400">cm</span>' : '—') + '</div>' +
       '</div>' +
       '<div class="snow-modal-stat">' +
-        '<div class="snow-modal-stat-lbl">&#x1F3E0; &#x5C71;&#x8139;&#x7A4D;&#x96EA; (' + d.baseElev + 'm)</div>' +
-        '<div class="snow-modal-stat-val" style="color:#a0c4f8">' + d.baseSnow + '<span style="font-size:13px;font-weight:400">cm</span></div>' +
+        '<div class="snow-modal-stat-lbl">&#x1F3E0; &#x5C81;&#x5165;&#x7A4D;&#x96EA; (' + (d.baseElev !== null ? d.baseElev + 'm' : '—') + ')</div>' +
+        '<div class="snow-modal-stat-val" style="color:#a0c4f8">' + (d.baseSnow !== null ? d.baseSnow + '<span style="font-size:13px;font-weight:400">cm</span>' : '—') + '</div>' +
       '</div>' +
       '<div class="snow-modal-stat">' +
         '<div class="snow-modal-stat-lbl">&#x1F328; &#x6628;&#x665A;&#x65B0;&#x96EA;</div>' +
@@ -6088,9 +6118,7 @@ function openSnowModal(key) {
       '<div class="terrain-chips">' + terrainChipsHTML + '</div>' +
     '</div>' +
 
-    '<hr class="snow-modal-divider">' +
-    '<div class="snow-modal-sec-title">&#x1F31F; &#x8457;&#x540D;&#x96EA;&#x9053;</div>' +
-    '<div class="famous-runs">' + famousRunsHTML + '</div>' +
+    (d.famousRuns && d.famousRuns.length > 0 ? '<hr class="snow-modal-divider"><div class="snow-modal-sec-title">&#x1F31F; &#x8457;&#x540D;&#x96EA;&#x9053;</div><div class="famous-runs">' + famousRunsHTML + '</div>' : '') +
 
     '<hr class="snow-modal-divider">' +
     '<div class="snow-modal-sec-title">&#x1F48E; Hidden Gem</div>' +
@@ -6099,12 +6127,7 @@ function openSnowModal(key) {
       '<div class="hidden-gem-text">' + d.hiddenGem + '</div>' +
     '</div>' +
 
-    '<hr class="snow-modal-divider">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-      '<div class="snow-modal-sec-title" style="margin:0">&#x1F6A1; &#x7E9C;&#x6988;&#x72C0;&#x614B; (' + d.lifts.filter(function(l){return l.status==='open';}).length + '/' + d.lifts.length + ' &#x958B;&#x653E;)</div>' +
-      '<span style="font-size:11px;color:' + d.accent + ';font-weight:700">' + d.runsOpen + '/' + d.runsTotal + ' &#x8DEF;&#x7DDA;</span>' +
-    '</div>' +
-    '<div class="snow-lift-list" style="margin-top:8px">' + liftsHTML + '</div>' +
+    (d.lifts && d.lifts.length > 0 ? '<hr class="snow-modal-divider"><div style="display:flex;justify-content:space-between;align-items:center;"><div class="snow-modal-sec-title" style="margin:0">&#x1F6A1; &#x7E9C;&#x6988;&#x72C0;&#x614B; (' + d.lifts.filter(function(l){return l.status==="open";}).length + '/' + d.lifts.length + ' &#x958B;&#x653E;)</div><span style="font-size:11px;color:' + d.accent + ';font-weight:700">' + (d.runsOpen !== null ? d.runsOpen : '—') + '/' + (d.runsTotal !== null ? d.runsTotal : '—') + ' &#x8DEF;&#x7DDA;</span></div><div class="snow-lift-list" style="margin-top:8px">' + liftsHTML + '</div>' : '') +
 
     '<hr class="snow-modal-divider">' +
     '<div class="snow-modal-sec-title">&#x1F4DD; &#x96EA;&#x5834;&#x7C21;&#x4ECB;</div>' +

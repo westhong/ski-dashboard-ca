@@ -18,13 +18,12 @@
 
 // ─── VAPID Key Material ───────────────────────────────────────────────────────
 // Public key — safe to be in source code
-const VAPID_PUBLIC_KEY = 'BPlXPfKewlablRFBzorXCvjst2chjXrZ7WkxuNXjx_jya0CMZPskAivdrG1cXOr9-o5pPpn6TQFDLOJkYJp95EU';
+const VAPID_PUBLIC_KEY = 'BOFt84jfiRV3tgCupl8Bhy47IyfbEaFlMprja18X6G9GmihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
 // X/Y coordinates of the public key (needed for JWK private key import)
-const VAPID_KEY_X = '-Vc98p7CVpuVEUHOitcK-Oy3ZyGNetntaTG41ePH-PI';
-const VAPID_KEY_Y = 'a0CMZPskAivdrG1cXOr9-o5pPpn6TQFDLOJkYJp95EU';
+const VAPID_KEY_X = '4W3ziN-JFXe2AK6mXwGHLjsjJ9sRoWUymuNrXxfob0Y';
+const VAPID_KEY_Y = 'mihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
 // Private key 'd' value — set as Cloudflare secret: VAPID_PRIVATE_KEY
 // Fallback for dev/testing only (remove in production)
-const VAPID_PRIVATE_FALLBACK = 'ulsPZAXPlmPjuX3BIoOFMIaALD9Z4lYB7A5-IMhT2OY';
 
 // ─── City → Resort Config (v3.1) ─────────────────────────────────────────────
 // 5 cities, 8 resorts each, sorted by fame/priority, all within 500 km radius
@@ -292,8 +291,13 @@ async function checkSnowAndNotify(env) {
   const keys = await KV.list({ prefix: 'push:' });
   if (keys.keys.length === 0) return { skipped: 'no subscribers' };
 
+  // Build deduplicated resort list from all cities
+  const allResorts = Object.values(CITY_RESORTS).flatMap(c => c.resorts);
+  const seenIds = new Set();
+  const uniqueResorts = allResorts.filter(r => { if (seenIds.has(r.id)) return false; seenIds.add(r.id); return true; });
+
   const results = [];
-  for (const resort of RESORTS) {
+  for (const resort of uniqueResorts) {
     try {
       const data = await fetchWeather(resort);
       if (!data) continue;
@@ -312,7 +316,7 @@ async function checkSnowAndNotify(env) {
           badge: '/icon-192.png',
           tag: `ski-${resort.id}-${alert.key}`,
           resort: resort.name,
-          url: `/?page=${resort.page}`,
+          url: '/',
         };
         const sent = await sendToAll(env, KV, payload);
         results.push({ resort: resort.name, alert: alert.key, sent });
@@ -432,7 +436,7 @@ async function hkdf(salt, ikm, info, len) {
 
 async function sendWebPush(env, subscription, payload) {
   const VAPID_PUBLIC  = VAPID_PUBLIC_KEY;
-  const VAPID_PRIVATE = (env && env.VAPID_PRIVATE_KEY) || VAPID_PRIVATE_FALLBACK;
+  const VAPID_PRIVATE = (env && env.VAPID_PRIVATE_KEY);
   const subject       = ((env && env.VAPID_SUBJECT) || 'mailto:west.wong@westech.com.hk').trim();
 
   const endpoint = subscription.endpoint;
