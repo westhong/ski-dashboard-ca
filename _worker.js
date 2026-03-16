@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════════════
-//  Ski Dashboard — v4.0.9 (_worker.js)
+//  Ski Dashboard — v4.1.0 (_worker.js)
 //  Cloudflare Worker — All-in-One Architecture
 //
 //  Architecture (inspired by UmiCare):
@@ -25,7 +25,7 @@ const VAPID_KEY_Y = 'mihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
 // Private key 'd' value — set as Cloudflare secret: VAPID_PRIVATE_KEY
 // Fallback for dev/testing only (remove in production)
 
-// ─── City → Resort Config (v4.0.9) ─────────────────────────────────────────────
+// ─── City → Resort Config (v4.1.0) ─────────────────────────────────────────────
 // 5 cities, 8 resorts each, sorted by fame/priority, all within 500 km radius
 const CITY_RESORTS = {
   calgary: {
@@ -207,7 +207,7 @@ async function handleApi(request, env, url) {
   if (path === '/test-push' && method === 'GET') {
     const results = await sendToAll(env, KV, {
       title: '❄️ Ski Dashboard 測試',
-      body: '推送系統正常運作！ v4.0.9 ✅',
+      body: '推送系統正常運作！ v4.1.0 ✅',
       icon: '/icon-192.png',
       tag: 'ski-test',
       url: '/',
@@ -221,7 +221,7 @@ async function handleApi(request, env, url) {
     return json({ ok: true, result });
   }
 
-  // GET /api/snow?city=calgary — return snow data for a city's resorts (v4.0.9)
+  // GET /api/snow?city=calgary — return snow data for a city's resorts (v4.1.0)
   if (path === '/snow' && method === 'GET') {
     const cityKey = url.searchParams.get('city') || DEFAULT_CITY;
     const cityData = CITY_RESORTS[cityKey];
@@ -261,7 +261,7 @@ async function handleApi(request, env, url) {
     const keys = await KV.list({ prefix: 'push:' });
     const lastCheck = await KV.get('meta:lastCheck');
     return json({
-      version: 'v4.0.9',
+      version: 'v4.1.0',
       subscribers: keys.keys.length,
       lastCheck,
       resorts: RESORTS.map(r => r.name),
@@ -278,10 +278,10 @@ async function handleApi(request, env, url) {
       const s = JSON.parse(raw);
       return { key: k.name, endpoint: s.endpoint ? s.endpoint.substring(0, 60) + '...' : 'MISSING' };
     }));
-    return json({ version: 'v4.0.9', count: subs.length, subs: subs.filter(Boolean) });
+    return json({ version: 'v4.1.0', count: subs.length, subs: subs.filter(Boolean) });
   }
 
-  return json({ version: 'v4.0.9', error: 'Not found' }, 404);
+  return json({ version: 'v4.1.0', error: 'Not found' }, 404);
 }
 
 // ══════════════════════════════════════════════════════════════════════
