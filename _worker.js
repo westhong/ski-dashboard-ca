@@ -373,6 +373,45 @@ function toCount(open, total) {
   return [a, b];
 }
 
+function maybeDecode(value) {
+  if (typeof value !== 'string') return value;
+  try {
+    return decodeURIComponent(value.replace(/\+/g, ' '));
+  } catch {
+    return value;
+  }
+}
+
+function parseLegacySaveDate(value) {
+  const decoded = maybeDecode(value);
+  return isoOrNull(decoded);
+}
+
+function parsePanoramaCurrentTime(value) {
+  if (!value) return null;
+  const match = String(value).trim().match(/(\d{1,2}):(\d{2})(AM|PM)\s+(\d{1,2})\s+([A-Za-z]+),\s+(\d{4})/i);
+  if (!match) return null;
+  let [, hh, mm, meridiem, dd, monthName, yyyy] = match;
+  let hour = Number(hh) % 12;
+  if (/PM/i.test(meridiem)) hour += 12;
+  const monthIndex = ['january','february','march','april','may','june','july','august','september','october','november','december'].indexOf(monthName.toLowerCase());
+  if (monthIndex < 0) return null;
+  const iso = new Date(Date.UTC(Number(yyyy), monthIndex, Number(dd), hour + 6, Number(mm), 0));
+  return Number.isNaN(iso.getTime()) ? null : iso.toISOString();
+}
+
+function extractMetricByLabel(html, label) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = html.match(new RegExp(`<h4[^>]*class="[^"]*margin-bottom-0[^"]*">\\s*([^<]+)\\s*(?:<sup[^>]*>.*?<\\/sup>)?\\s*<\\/h4>\\s*<p[^>]*>\\s*${escaped}\\s*<\\/p>`, 'i'));
+  return numberOrNull(match && match[1]);
+}
+
+function extractRatioMetricByLabel(html, label) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = html.match(new RegExp(`<h4[^>]*class="[^"]*margin-bottom-0[^"]*">\\s*(\\d+)\\s*<sup[^>]*>\\s*\\/\\s*(\\d+)\\s*<\\/sup>\\s*<\\/h4>\\s*<p[^>]*>\\s*${escaped}\\s*<\\/p>`, 'i'));
+  return match ? [numberOrNull(match[1]), numberOrNull(match[2])] : [null, null];
+}
+
 async function getNormalizedSnowReport(resort, fetchedAt) {
   const adapter = SNOW_REPORT_ADAPTERS[resort.id] || getUnavailableSnowReport;
   try {
@@ -506,11 +545,85 @@ async function getCastleSnowReport(resort, fetchedAt) {
   return report;
 }
 
+async function getRcrSnowReport(resort, fetchedAt) {
+  const baseUrl = `https://www.${resort.website}/wp-content/themes/kallyas-child/reportData`;
+  const source = { name: `${resort.name} official RCR reportData`, type: 'json', url: `${baseUrl}/snowReport.json`, official: true };
+  const report = buildBaseSnowReport(resort, fetchedAt, source);
+  const [snow, lifts] = await Promise.all([
+    fetchJson(`${baseUrl}/snowReport.json`),
+    fetchJson(`${baseUrl}/liftReport.json`),
+  ]);
+
+  report.updatedAt = parseLegacySaveDate(lifts?.saveDate) || parseLegacySaveDate(snow?.saveDate);
+  report.metrics.overnightCm = numberOrNull(snow?.newSnowOvernight);
+  report.metrics.last24hCm = numberOrNull(snow?.newSnow24);
+  report.metrics.last48hCm = numberOrNull(snow?.newSnow48);
+  report.metrics.last7dCm = numberOrNull(snow?.newSnow7days);
+  report.metrics.baseCm = numberOrNull(snow?.snowPack);
+  report.metrics.seasonCm = numberOrNull(snow?.newSnowYTD);
+  report.metrics.runsOpen = numberOrNull(snow?.runsOpen);
+  report.metrics.groomedRuns = numberOrNull(snow?.runsGroomed);
+
+  const liftStatuses = Object.entries(lifts || {})
+    .filter(([key]) => /^liftStatus/i.test(key))
+    .map(([, value]) => maybeDecode(value));
+  if (liftStatuses.length) {
+    report.metrics.liftsTotal = liftStatuses.length;
+    report.metrics.liftsOpen = liftStatuses.filter((value) => /open/i.test(value || '')).length;
+  } else {
+    report.metrics.liftsOpen = numberOrNull(snow?.liftsOperating);
+  }
+
+  report.rawSummary = [
+    maybeDecode(snow?.lowerMntWeatherConditions) ? `下山天氣 ${maybeDecode(snow.lowerMntWeatherConditions)}` : null,
+    maybeDecode(snow?.upperMntWeatherConditions) ? `上山天氣 ${maybeDecode(snow.upperMntWeatherConditions)}` : null,
+    maybeDecode(snow?.lowerMtnConditions) ? `下山雪況 ${maybeDecode(snow.lowerMtnConditions)}` : null,
+    maybeDecode(snow?.upperMtnConditions) ? `上山雪況 ${maybeDecode(snow.upperMtnConditions)}` : null,
+  ].filter(Boolean).join('｜') || null;
+
+  report.status = (report.metrics.baseCm !== null || report.metrics.last24hCm !== null || report.metrics.liftsOpen !== null) ? 'live' : 'unavailable';
+  report.notes.push('Official RCR reportData JSON used for snow totals, lift status, run counts, and freshness timestamp.');
+  return report;
+}
+
+async function getPanoramaSnowReport(resort, fetchedAt) {
+  const source = { name: 'Panorama Today official HTML', type: 'html', url: 'https://www.panoramaresort.com/panorama-today', official: true };
+  const report = buildBaseSnowReport(resort, fetchedAt, source);
+  const [todayHtml, dailyHtml] = await Promise.all([
+    fetchText(source.url),
+    fetchText('https://www.panoramaresort.com/panorama-today/daily-snow-report'),
+  ]);
+
+  const currentTime = todayHtml.match(/<h5 class="brand-subheader blue-text margin-bottom-0">Current Weather<\/h5>\s*<p class="small light-text">([^<]+)<\/p>/i);
+  report.updatedAt = parsePanoramaCurrentTime(currentTime && currentTime[1]);
+  report.metrics.overnightCm = extractMetricByLabel(dailyHtml, 'Overnight');
+  report.metrics.last24hCm = extractMetricByLabel(dailyHtml, '24 Hours');
+  report.metrics.last48hCm = extractMetricByLabel(dailyHtml, '48 Hours');
+  report.metrics.last7dCm = extractMetricByLabel(dailyHtml, '7 Days');
+  report.metrics.seasonCm = extractMetricByLabel(dailyHtml, 'Season');
+  [report.metrics.runsOpen, report.metrics.runsTotal] = extractRatioMetricByLabel(todayHtml, 'Trails Open');
+  [report.metrics.liftsOpen, report.metrics.liftsTotal] = extractRatioMetricByLabel(todayHtml, 'Lifts Open');
+  report.metrics.groomedRuns = extractMetricByLabel(todayHtml, 'Groomed Runs');
+
+  const weatherRows = [...todayHtml.matchAll(/summary-current__location[\s\S]{0,260}?<h4>(.*?)<sup[\s\S]{0,120}?<div class="temp">[\s\S]{0,80}?(-?\d+)°/gi)]
+    .map((m) => `${cleanHtmlText(m[1])} ${m[2]}°C`)
+    .filter(Boolean);
+  report.rawSummary = weatherRows.length ? `Panorama Today：${weatherRows.join('｜')}` : 'Panorama Today lifts / trails / weather block parsed from official HTML.';
+
+  report.status = (report.metrics.last24hCm !== null || report.metrics.liftsOpen !== null || report.metrics.runsOpen !== null) ? 'live' : 'unavailable';
+  report.notes.push('Official Panorama Today HTML parsed for timestamp, lifts, trails, groomed runs, and current weather; daily snow report HTML parsed for snowfall totals.');
+  return report;
+}
+
 const SNOW_REPORT_ADAPTERS = {
   louise: getLakeLouiseSnowReport,
   sunshine: getSunshineSnowReport,
+  nakiska: getRcrSnowReport,
   norquay: getNorquaySnowReport,
   castle: getCastleSnowReport,
+  fernie: getRcrSnowReport,
+  kickhorse: getRcrSnowReport,
+  panorama: getPanoramaSnowReport,
 };
 
 // ══════════════════════════════════════════════════════════════════════
