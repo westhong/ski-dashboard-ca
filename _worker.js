@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════════════
-//  Ski Dashboard — v4.2.1 (_worker.js)
+//  Ski Dashboard — v4.2.2 (_worker.js)
 //  Cloudflare Worker — All-in-One Architecture
 //
 //  Architecture (inspired by UmiCare):
@@ -25,7 +25,7 @@ const VAPID_KEY_Y = 'mihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
 // Private key 'd' value — set as Cloudflare secret: VAPID_PRIVATE_KEY
 // Fallback for dev/testing only (remove in production)
 
-// ─── City → Resort Config (v4.2.1) ─────────────────────────────────────────────
+// ─── City → Resort Config (v4.2.2) ─────────────────────────────────────────────
 // 5 cities, 8 resorts each, sorted by fame/priority, all within 500 km radius
 const CITY_RESORTS = {
   calgary: {
@@ -81,8 +81,8 @@ const CITY_RESORTS = {
       { id: 'marmot',    name: 'Marmot Basin',        emoji: '🦦', lat: 52.9079, lon: -118.0630, alt: 2612, dist: 306 },
       { id: 'louise',    name: 'Lake Louise',         emoji: '🏔️', lat: 51.4254, lon: -116.1773, alt: 2637, dist: 298 },
       { id: 'sunshine',  name: 'Sunshine Village',    emoji: '☀️', lat: 51.0630, lon: -115.7729, alt: 2730, dist: 314 },
-      { id: 'kickhorse', name: 'Kicking Horse',       emoji: '🐴', lat: 51.3000, lon: -117.0522, alt: 2450, dist: 344 },
-      { id: 'nakiska',   name: 'Nakiska',             emoji: '🎿', lat: 50.9406, lon: -115.1531, alt: 2258, dist: 311 },
+      { id: 'kickhorse', name: 'Kicking Horse',       emoji: '🐴', lat: 51.3000, lon: -117.0522, alt: 2450, dist: 344, website: 'kickinghorseresort.com' },
+      { id: 'nakiska',   name: 'Nakiska',             emoji: '🎿', lat: 50.9406, lon: -115.1531, alt: 2258, dist: 311, website: 'skinakiska.com' },
       { id: 'snowvalleye',name: 'Snow Valley (Edmonton)',emoji:'🌨️',lat: 53.5099, lon: -113.6312, alt: 650, dist:   9 },
       { id: 'sunridge',  name: 'Sunridge Ski Area',   emoji: '🏂', lat: 53.5792, lon: -113.3528, alt: 660, dist:   7 },
       { id: 'rabbithill',name: 'Rabbit Hill',         emoji: '🐇', lat: 53.3826, lon: -113.7012, alt: 760, dist:  22 },
@@ -207,7 +207,7 @@ async function handleApi(request, env, url) {
   if (path === '/test-push' && method === 'GET') {
     const results = await sendToAll(env, KV, {
       title: '❄️ Ski Dashboard 測試',
-      body: '推送系統正常運作！ v4.2.1 ✅',
+      body: '推送系統正常運作！ v4.2.2 ✅',
       icon: '/icon-192.png',
       tag: 'ski-test',
       url: '/',
@@ -221,7 +221,7 @@ async function handleApi(request, env, url) {
     return json({ ok: true, result });
   }
 
-  // GET /api/snow?city=calgary — live snow reports with normalized model (v4.2.1)
+  // GET /api/snow?city=calgary — live snow reports with normalized model (v4.2.2)
   if (path === '/snow' && method === 'GET') {
     const cityKey = url.searchParams.get('city') || DEFAULT_CITY;
     const cityData = CITY_RESORTS[cityKey];
@@ -257,7 +257,7 @@ async function handleApi(request, env, url) {
     const keys = await KV.list({ prefix: 'push:' });
     const lastCheck = await KV.get('meta:lastCheck');
     return json({
-      version: 'v4.2.1',
+      version: 'v4.2.2',
       subscribers: keys.keys.length,
       lastCheck,
       resorts: RESORTS.map(r => r.name),
@@ -274,10 +274,10 @@ async function handleApi(request, env, url) {
       const s = JSON.parse(raw);
       return { key: k.name, endpoint: s.endpoint ? s.endpoint.substring(0, 60) + '...' : 'MISSING' };
     }));
-    return json({ version: 'v4.2.1', count: subs.length, subs: subs.filter(Boolean) });
+    return json({ version: 'v4.2.2', count: subs.length, subs: subs.filter(Boolean) });
   }
 
-  return json({ version: 'v4.2.1', error: 'Not found' }, 404);
+  return json({ version: 'v4.2.2', error: 'Not found' }, 404);
 }
 
 
@@ -347,7 +347,7 @@ async function fetchText(url, init = {}) {
   const response = await fetch(url, {
     ...init,
     headers: {
-      'User-Agent': 'ski-dashboard-ca/4.2.0 (+https://dashboard.westech.com.hk)',
+      'User-Agent': 'ski-dashboard-ca/4.2.2 (+https://dashboard.westech.com.hk)',
       'Accept': init.accept || 'text/html,application/json;q=0.9,*/*;q=0.8',
       ...(init.headers || {}),
     },
@@ -359,7 +359,7 @@ async function fetchText(url, init = {}) {
 async function fetchJson(url) {
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'ski-dashboard-ca/4.2.0 (+https://dashboard.westech.com.hk)',
+      'User-Agent': 'ski-dashboard-ca/4.2.2 (+https://dashboard.westech.com.hk)',
       'Accept': 'application/json,text/plain;q=0.9,*/*;q=0.8',
     },
   });
