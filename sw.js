@@ -1,12 +1,12 @@
-// Ski Dashboard Service Worker v4.2.2
+// Ski Dashboard Service Worker v4.2.3
 // Architecture: All-in-One Cloudflare Worker
 // Push endpoints are now same-origin (/api/subscribe, /api/unsubscribe)
 
-const CACHE_NAME = 'ski-dashboard-v4.2.2';
+const CACHE_NAME = 'ski-dashboard-v4.2.3';
 
 // ─── Install ────────────────────────────────────────────────────────────────
 self.addEventListener('install', event => {
-  console.log('[SW] Install v4.2.2');
+  console.log('[SW] Install v4.2.3');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(['/']);
@@ -16,7 +16,7 @@ self.addEventListener('install', event => {
 
 // ─── Activate: clean old caches ────────────────────────────────────────────
 self.addEventListener('activate', event => {
-  console.log('[SW] Activate v4.2.2');
+  console.log('[SW] Activate v4.2.3');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))

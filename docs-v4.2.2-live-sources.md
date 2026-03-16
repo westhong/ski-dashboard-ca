@@ -1,4 +1,4 @@
-# v4.2.2 Live source research
+# v4.2.3 Live source research
 
 日期：2026-03-16
 
@@ -45,7 +45,7 @@
 - 阻塞點：目前沒找到穩定官方 JSON / REST / GraphQL；需從官方 HTML regex/DOM 抽值，較脆弱。
 - 結論：可接入，但屬 official HTML parser，不是假裝有 API。
 
-## v4.2.2 技術方案
+## v4.2.3 技術方案
 
 1. **RCR resorts（Nakiska / Fernie / Kicking Horse）**
    - 新增共用 adapter：同時讀 `snowReport.json` + `liftReport.json`
@@ -54,7 +54,7 @@
    - run/lift metrics：
      - `runsOpen`, `runsGroomed` 取 snow JSON
      - `liftsOpen/liftsTotal` 以 `liftStatus*` 統計，避免只看 summary 欄位
-   - 前端沿用 freshness 標示，若官方資料舊則顯示「即時（偏舊）」
+   - 前端沿用 freshness 標示，若官方資料舊則顯示 `stale`，不要包裝成 live
 
 2. **Panorama**
    - `daily-snow-report` 提供雪量與季積雪
