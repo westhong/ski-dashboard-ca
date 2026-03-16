@@ -1,0 +1,8 @@
+{
+  "name": "ski-dashboard-ca",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

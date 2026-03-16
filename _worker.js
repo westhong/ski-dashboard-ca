@@ -1,5 +1,7 @@
+import { parsePanoramaPages } from './lib/panorama-parser.js';
+
 // ══════════════════════════════════════════════════════════════════════
-//  Ski Dashboard — v4.2.2 (_worker.js)
+//  Ski Dashboard — v4.2.3 (_worker.js)
 //  Cloudflare Worker — All-in-One Architecture
 //
 //  Architecture (inspired by UmiCare):
@@ -25,7 +27,7 @@ const VAPID_KEY_Y = 'mihJi_QapcWSgsKHSarYl3UIy4ElB6t9fDxmqEJM83w';
 // Private key 'd' value — set as Cloudflare secret: VAPID_PRIVATE_KEY
 // Fallback for dev/testing only (remove in production)
 
-// ─── City → Resort Config (v4.2.2) ─────────────────────────────────────────────
+// ─── City → Resort Config (v4.2.3) ─────────────────────────────────────────────
 // 5 cities, 8 resorts each, sorted by fame/priority, all within 500 km radius
 const CITY_RESORTS = {
   calgary: {
@@ -207,7 +209,7 @@ async function handleApi(request, env, url) {
   if (path === '/test-push' && method === 'GET') {
     const results = await sendToAll(env, KV, {
       title: '❄️ Ski Dashboard 測試',
-      body: '推送系統正常運作！ v4.2.2 ✅',
+      body: '推送系統正常運作！ v4.2.3 ✅',
       icon: '/icon-192.png',
       tag: 'ski-test',
       url: '/',
@@ -221,13 +223,13 @@ async function handleApi(request, env, url) {
     return json({ ok: true, result });
   }
 
-  // GET /api/snow?city=calgary — live snow reports with normalized model (v4.2.2)
+  // GET /api/snow?city=calgary — live snow reports with normalized model (v4.2.3)
   if (path === '/snow' && method === 'GET') {
     const cityKey = url.searchParams.get('city') || DEFAULT_CITY;
     const cityData = CITY_RESORTS[cityKey];
     if (!cityData) return json({ error: `Unknown city: ${cityKey}`, known: Object.keys(CITY_RESORTS) }, 400);
 
-    const cacheKey = `snow:${cityKey}:v1`;
+    const cacheKey = `snow:${cityKey}:v2`;
     const cached = await KV.get(cacheKey);
     if (cached) {
       return new Response(cached, { status: 200, headers: { 'Content-Type': 'application/json', ...CORS } });
@@ -257,7 +259,7 @@ async function handleApi(request, env, url) {
     const keys = await KV.list({ prefix: 'push:' });
     const lastCheck = await KV.get('meta:lastCheck');
     return json({
-      version: 'v4.2.2',
+      version: 'v4.2.3',
       subscribers: keys.keys.length,
       lastCheck,
       resorts: RESORTS.map(r => r.name),
@@ -274,10 +276,10 @@ async function handleApi(request, env, url) {
       const s = JSON.parse(raw);
       return { key: k.name, endpoint: s.endpoint ? s.endpoint.substring(0, 60) + '...' : 'MISSING' };
     }));
-    return json({ version: 'v4.2.2', count: subs.length, subs: subs.filter(Boolean) });
+    return json({ version: 'v4.2.3', count: subs.length, subs: subs.filter(Boolean) });
   }
 
-  return json({ version: 'v4.2.2', error: 'Not found' }, 404);
+  return json({ version: 'v4.2.3', error: 'Not found' }, 404);
 }
 
 
@@ -343,6 +345,39 @@ function buildBaseSnowReport(resort, fetchedAt, source) {
   };
 }
 
+function hasSnowMetrics(report) {
+  const m = report.metrics || {};
+  return [
+    m.overnightCm,
+    m.last24hCm,
+    m.last48hCm,
+    m.last7dCm,
+    m.baseCm,
+    m.seasonCm,
+    m.liftsOpen,
+    m.runsOpen,
+    m.groomedRuns,
+  ].some((value) => value !== null && value !== undefined);
+}
+
+function getSnowStatus(report) {
+  if (report.status === 'error') return 'error';
+  if (!hasSnowMetrics(report)) return 'unavailable';
+  const sourceIso = report.updatedAt || report.fetchedAt;
+  const ts = sourceIso ? new Date(sourceIso).getTime() : NaN;
+  if (!Number.isFinite(ts)) return 'stale';
+  const ageHours = (Date.now() - ts) / 36e5;
+  return ageHours >= 36 ? 'stale' : 'live';
+}
+
+function finalizeSnowReport(report) {
+  report.status = getSnowStatus(report);
+  if (report.status === 'stale' && !report.notes.some((note) => /stale|偏舊|非最新/i.test(note))) {
+    report.notes.push('Official source responded, but the published update time is stale; UI should label this as stale, not live.');
+  }
+  return report;
+}
+
 async function fetchText(url, init = {}) {
   const response = await fetch(url, {
     ...init,
@@ -385,31 +420,6 @@ function maybeDecode(value) {
 function parseLegacySaveDate(value) {
   const decoded = maybeDecode(value);
   return isoOrNull(decoded);
-}
-
-function parsePanoramaCurrentTime(value) {
-  if (!value) return null;
-  const match = String(value).trim().match(/(\d{1,2}):(\d{2})(AM|PM)\s+(\d{1,2})\s+([A-Za-z]+),\s+(\d{4})/i);
-  if (!match) return null;
-  let [, hh, mm, meridiem, dd, monthName, yyyy] = match;
-  let hour = Number(hh) % 12;
-  if (/PM/i.test(meridiem)) hour += 12;
-  const monthIndex = ['january','february','march','april','may','june','july','august','september','october','november','december'].indexOf(monthName.toLowerCase());
-  if (monthIndex < 0) return null;
-  const iso = new Date(Date.UTC(Number(yyyy), monthIndex, Number(dd), hour + 6, Number(mm), 0));
-  return Number.isNaN(iso.getTime()) ? null : iso.toISOString();
-}
-
-function extractMetricByLabel(html, label) {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = html.match(new RegExp(`<h4[^>]*class="[^"]*margin-bottom-0[^"]*">\\s*([^<]+)\\s*(?:<sup[^>]*>.*?<\\/sup>)?\\s*<\\/h4>\\s*<p[^>]*>\\s*${escaped}\\s*<\\/p>`, 'i'));
-  return numberOrNull(match && match[1]);
-}
-
-function extractRatioMetricByLabel(html, label) {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = html.match(new RegExp(`<h4[^>]*class="[^"]*margin-bottom-0[^"]*">\\s*(\\d+)\\s*<sup[^>]*>\\s*\\/\\s*(\\d+)\\s*<\\/sup>\\s*<\\/h4>\\s*<p[^>]*>\\s*${escaped}\\s*<\\/p>`, 'i'));
-  return match ? [numberOrNull(match[1]), numberOrNull(match[2])] : [null, null];
 }
 
 async function getNormalizedSnowReport(resort, fetchedAt) {
@@ -462,7 +472,7 @@ async function getSunshineSnowReport(resort, fetchedAt) {
   report.metrics.groomedRuns = null;
   report.rawSummary = cleanHtmlText(snow.summary);
   report.notes.push('Official JSON endpoint used for snow totals and lift/run status.');
-  return report;
+  return finalizeSnowReport(report);
 }
 
 async function getLakeLouiseSnowReport(resort, fetchedAt) {
@@ -581,9 +591,8 @@ async function getRcrSnowReport(resort, fetchedAt) {
     maybeDecode(snow?.upperMtnConditions) ? `上山雪況 ${maybeDecode(snow.upperMtnConditions)}` : null,
   ].filter(Boolean).join('｜') || null;
 
-  report.status = (report.metrics.baseCm !== null || report.metrics.last24hCm !== null || report.metrics.liftsOpen !== null) ? 'live' : 'unavailable';
   report.notes.push('Official RCR reportData JSON used for snow totals, lift status, run counts, and freshness timestamp.');
-  return report;
+  return finalizeSnowReport(report);
 }
 
 async function getPanoramaSnowReport(resort, fetchedAt) {
@@ -594,25 +603,20 @@ async function getPanoramaSnowReport(resort, fetchedAt) {
     fetchText('https://www.panoramaresort.com/panorama-today/daily-snow-report'),
   ]);
 
-  const currentTime = todayHtml.match(/<h5 class="brand-subheader blue-text margin-bottom-0">Current Weather<\/h5>\s*<p class="small light-text">([^<]+)<\/p>/i);
-  report.updatedAt = parsePanoramaCurrentTime(currentTime && currentTime[1]);
-  report.metrics.overnightCm = extractMetricByLabel(dailyHtml, 'Overnight');
-  report.metrics.last24hCm = extractMetricByLabel(dailyHtml, '24 Hours');
-  report.metrics.last48hCm = extractMetricByLabel(dailyHtml, '48 Hours');
-  report.metrics.last7dCm = extractMetricByLabel(dailyHtml, '7 Days');
-  report.metrics.seasonCm = extractMetricByLabel(dailyHtml, 'Season');
-  [report.metrics.runsOpen, report.metrics.runsTotal] = extractRatioMetricByLabel(todayHtml, 'Trails Open');
-  [report.metrics.liftsOpen, report.metrics.liftsTotal] = extractRatioMetricByLabel(todayHtml, 'Lifts Open');
-  report.metrics.groomedRuns = extractMetricByLabel(todayHtml, 'Groomed Runs');
+  const parsed = parsePanoramaPages(todayHtml, dailyHtml);
+  report.updatedAt = parsed.updatedAt;
+  report.metrics.overnightCm = parsed.metrics.overnightCm;
+  report.metrics.last24hCm = parsed.metrics.last24hCm;
+  report.metrics.last48hCm = parsed.metrics.last48hCm;
+  report.metrics.last7dCm = parsed.metrics.last7dCm;
+  report.metrics.seasonCm = parsed.metrics.seasonCm;
+  report.metrics.groomedRuns = parsed.metrics.groomedRuns;
+  [report.metrics.runsOpen, report.metrics.runsTotal] = parsed.metrics.runs;
+  [report.metrics.liftsOpen, report.metrics.liftsTotal] = parsed.metrics.lifts;
+  report.rawSummary = parsed.rawSummary;
 
-  const weatherRows = [...todayHtml.matchAll(/summary-current__location[\s\S]{0,260}?<h4>(.*?)<sup[\s\S]{0,120}?<div class="temp">[\s\S]{0,80}?(-?\d+)°/gi)]
-    .map((m) => `${cleanHtmlText(m[1])} ${m[2]}°C`)
-    .filter(Boolean);
-  report.rawSummary = weatherRows.length ? `Panorama Today：${weatherRows.join('｜')}` : 'Panorama Today lifts / trails / weather block parsed from official HTML.';
-
-  report.status = (report.metrics.last24hCm !== null || report.metrics.liftsOpen !== null || report.metrics.runsOpen !== null) ? 'live' : 'unavailable';
-  report.notes.push('Official Panorama Today HTML parsed for timestamp, lifts, trails, groomed runs, and current weather; daily snow report HTML parsed for snowfall totals.');
-  return report;
+  report.notes.push('Official Panorama Today HTML parsed via dedicated selectors/helpers for timestamp, lifts, trails, groomed runs, and current weather; daily snow report HTML parsed for snowfall totals.');
+  return finalizeSnowReport(report);
 }
 
 const SNOW_REPORT_ADAPTERS = {
