@@ -3521,7 +3521,7 @@ const LOCS = [
   { id:8, key:'c8', tz:'America/Edmonton', lat:51.0447, lon:-114.0719, alt:1045,  name:'Calgary'             , website:'visitcalgary.com'},
 ];
 const CITY_PAGE_DISPLAY_ORDER = {
-  calgary: ['p2','p1','p0','p3','p4','p5','p6','p7','p8'],
+  calgary: ['p0','p1','p2','p3','p4','p5','p6','p7','p8'],
   default: ['p0','p1','p2','p3','p4','p5','p6','p7','p8']
 };
 const POWDER_PILOT_CONFIG = Object.freeze({
@@ -5057,6 +5057,9 @@ async function fetchMET(lat,lon,alt){
 
 async function loadLoc(loc){
   try{
+    // v4.3.0: keep the hero elevation label in sync with the elevation actually used for the forecast
+    const heroLbl = document.querySelector('#' + loc.key + '-hero .card-label');
+    if (heroLbl && loc.alt) heroLbl.textContent = '山頂天氣 · ' + Math.round(loc.alt).toLocaleString('en-US') + ' m';
     dbg('inf','→ '+loc.name);
     const [om,met]=await Promise.all([fetchOM(loc.lat,loc.lon,loc.tz,loc.alt), fetchMET(loc.lat,loc.lon,loc.alt)]);
     window.WEATHER_CACHE = window.WEATHER_CACHE || {};
@@ -5895,6 +5898,9 @@ async function devSwitchCity(cityKey) {
     const subEl  = page.querySelector('.sub');
     if (locEl) locEl.textContent = PAGE_EMOJI[i] + ' ' + nr.name;
     if (subEl) subEl.textContent = nr.subName + ' · ' + nr.alt.toLocaleString() + ' m';
+    // v4.3.0: hero label elevation was hard-coded in the page template (showed Nakiska 2,258 m on every page)
+    const heroLbl = document.querySelector('#c' + i + '-hero .card-label');
+    if (heroLbl) heroLbl.textContent = '山頂天氣 · ' + nr.alt.toLocaleString() + ' m';
     // Reset data fields to loading state
     ['temp','desc','feel','hi','lo','uv','uv-lbl','solar','wind','gust',
      'prec','snow','prob'].forEach(field => {
