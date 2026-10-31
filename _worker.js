@@ -227,7 +227,7 @@ async function handleApi(request, env, url) {
     const cityData = CITY_RESORTS[cityKey];
     if (!cityData) return json({ error: `Unknown city: ${cityKey}`, known: Object.keys(CITY_RESORTS) }, 400);
 
-    const cacheKey = `snow:${cityKey}:v1`;
+    const cacheKey = `snow:${cityKey}:v2`;
     const cached = await KV.get(cacheKey);
     if (cached) {
       return new Response(cached, { status: 200, headers: { 'Content-Type': 'application/json', ...CORS } });
@@ -252,12 +252,29 @@ async function handleApi(request, env, url) {
     return new Response(payload, { status: 200, headers: { 'Content-Type': 'application/json', ...CORS } });
   }
 
+  // GET /api/weather?resort=louise — multi-model mountain weather at resort elevation (v4.3.0)
+  if (path === '/weather' && method === 'GET') {
+    const id = url.searchParams.get('resort') || '';
+    if (!findResortById(id)) return json({ error: `Unknown resort: ${id}` }, 400);
+    const ck = `weather:${id}:v1`;
+    const cached = await KV.get(ck);
+    if (cached) return new Response(cached, { status: 200, headers: { 'Content-Type': 'application/json', ...CORS } });
+    try {
+      const data = await getMountainWeather(id);
+      const body = JSON.stringify(data);
+      await KV.put(ck, body, { expirationTtl: 1200 });
+      return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json', ...CORS } });
+    } catch (e) {
+      return json({ error: 'weather unavailable', detail: String(e.message || e) }, 502);
+    }
+  }
+
   // GET /api/stats — subscriber count + last check
   if (path === '/stats' && method === 'GET') {
     const keys = await KV.list({ prefix: 'push:' });
     const lastCheck = await KV.get('meta:lastCheck');
     return json({
-      version: 'v4.2.2',
+      version: 'v4.3.0',
       subscribers: keys.keys.length,
       lastCheck,
       resorts: RESORTS.map(r => r.name),
@@ -343,6 +360,11 @@ function buildBaseSnowReport(resort, fetchedAt, source) {
   };
 }
 
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+  'Accept-Language': 'en-CA,en;q=0.9',
+};
+
 async function fetchText(url, init = {}) {
   const response = await fetch(url, {
     ...init,
@@ -412,6 +434,152 @@ function extractRatioMetricByLabel(html, label) {
   return match ? [numberOrNull(match[1]), numberOrNull(match[2])] : [null, null];
 }
 
+// ══════════════════════════════════════════════════════════════════════
+//  MULTI-MODEL MOUNTAIN WEATHER (v4.3.0)
+//  Open-Meteo evaluated AT RESORT ELEVATION (the old front-end used the 1.5 km
+//  valley grid cell, which made summit forecasts ~7-10 C too warm) + 4 NWP models
+//  (GEM/HRDPS, ECMWF IFS, GFS, ICON) + MET Norway. Consensus = median; spread
+//  exposes disagreement honestly instead of hiding it.
+// ══════════════════════════════════════════════════════════════════════
+const WX_MODELS = ['gem_seamless', 'ecmwf_ifs025', 'gfs_seamless', 'icon_seamless'];
+const WX_BASE_ALT = { louise: 1646, sunshine: 1660, nakiska: 1525, norquay: 1630, castle: 1400, fernie: 1070, kickhorse: 1190, panorama: 1150 };
+const SKI_H0 = 9, SKI_H1 = 16;
+
+function findResortById(id) {
+  for (const city of Object.values(CITY_RESORTS)) {
+    const r = city.resorts.find((x) => x.id === id);
+    if (r) return r;
+  }
+  return null;
+}
+function median(a) {
+  const v = a.filter((x) => x !== null && x !== undefined && !Number.isNaN(x)).sort((p, q) => p - q);
+  if (!v.length) return null;
+  const m = Math.floor(v.length / 2);
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+const r1 = (x) => (x === null || x === undefined ? null : Math.round(x * 10) / 10);
+function mean(a) { const v = a.filter((x) => x !== null && x !== undefined); return v.length ? v.reduce((p, q) => p + q, 0) / v.length : null; }
+function maxOf(a) { const v = a.filter((x) => x !== null && x !== undefined); return v.length ? Math.max(...v) : null; }
+function minOf(a) { const v = a.filter((x) => x !== null && x !== undefined); return v.length ? Math.min(...v) : null; }
+
+function agreement(values, tight, loose) {
+  const v = values.filter((x) => x !== null && x !== undefined);
+  if (v.length < 2) return 'single';
+  const spread = Math.max(...v) - Math.min(...v);
+  return spread <= tight ? 'high' : spread <= loose ? 'medium' : 'low';
+}
+
+function summarizeDay(hourly, modelNames, date) {
+  // hourly: { time:[], <var>_<model>:[] } ; returns per-model + consensus for a local date
+  const idxAll = [], idxSki = [];
+  hourly.time.forEach((t, i) => {
+    if (t.slice(0, 10) !== date) return;
+    idxAll.push(i);
+    const h = Number(t.slice(11, 13));
+    if (h >= SKI_H0 && h <= SKI_H1) idxSki.push(i);
+  });
+  const per = {};
+  for (const m of modelNames) {
+    const col = (v, idx) => idx.map((i) => (hourly[`${v}_${m}`] ? hourly[`${v}_${m}`][i] : null));
+    const t = col('temperature_2m', idxSki);
+    const idxAm = idxSki.filter((i) => Number(hourly.time[i].slice(11, 13)) <= 11);
+    const idxPm = idxSki.filter((i) => Number(hourly.time[i].slice(11, 13)) >= 13);
+    if (t.every((x) => x === null || x === undefined)) continue;
+    per[m] = {
+      tempAvg: r1(mean(t)), tempAm: r1(mean(col('temperature_2m', idxAm))), tempPm: r1(mean(col('temperature_2m', idxPm))),
+      windAvg: r1(mean(col('wind_speed_10m', idxSki))), gustMax: r1(maxOf(col('wind_gusts_10m', idxSki))),
+      snowDayCm: r1(col('snowfall', idxAll).reduce((p, q) => p + (q || 0), 0)),
+      snowSkiCm: r1(col('snowfall', idxSki).reduce((p, q) => p + (q || 0), 0)),
+      cloudAvg: r1(mean(col('cloud_cover', idxSki))),
+      freezingLevelM: r1(mean(col('freezing_level_height', idxSki))),
+    };
+  }
+  return per;
+}
+
+function consensus(per, extraMet) {
+  const models = { ...per };
+  if (extraMet) models.metno = extraMet;
+  const pick = (k, src = models) => Object.values(src).map((x) => x[k]);
+  const snowSrc = per; // MET Norway has no snowfall field in compact
+  return {
+    tempAvgC: r1(median(pick('tempAvg'))), tempAmC: r1(median(pick('tempAm'))), tempPmC: r1(median(pick('tempPm'))),
+    windAvgKmh: r1(median(pick('windAvg'))), gustMaxKmh: r1(maxOf(pick('gustMax'))),
+    snowDayCm: r1(median(pick('snowDayCm', snowSrc))), snowDayRangeCm: [r1(minOf(pick('snowDayCm', snowSrc))), r1(maxOf(pick('snowDayCm', snowSrc)))],
+    cloudAvgPct: r1(median(pick('cloudAvg'))), freezingLevelM: r1(median(pick('freezingLevelM'))),
+    agreement: {
+      temp: agreement(pick('tempAvg'), 3, 6),
+      wind: agreement(pick('windAvg'), 8, 18),
+      snow: agreement(pick('snowDayCm', snowSrc), 2, 6),
+    },
+    perModel: models,
+  };
+}
+
+async function fetchMetNo(lat, lon, alt) {
+  try {
+    const res = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&altitude=${Math.round(alt)}`, {
+      headers: { 'User-Agent': 'ski-dashboard-ca/4.3.0 (+https://dashboard.westech.com.hk; west.wong@westech.com.hk)' },
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Edmonton', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit' });
+    const byDate = {};
+    for (const e of j.properties.timeseries) {
+      const p = Object.fromEntries(fmt.formatToParts(new Date(e.time)).map((x) => [x.type, x.value]));
+      const date = `${p.year}-${p.month}-${p.day}`; const h = Number(p.hour);
+      const d = e.data.instant.details; const pr = e.data.next_1_hours?.details?.precipitation_amount ?? null;
+      (byDate[date] = byDate[date] || []).push({ h, t: d.air_temperature, w: d.wind_speed * 3.6, g: d.wind_speed_of_gust != null ? d.wind_speed_of_gust * 3.6 : null, c: d.cloud_area_fraction, pr });
+    }
+    const out = {};
+    for (const [date, rows] of Object.entries(byDate)) {
+      const ski = rows.filter((x) => x.h >= SKI_H0 && x.h <= SKI_H1);
+      if (!ski.length) continue;
+      out[date] = { tempAvg: r1(mean(ski.map((x) => x.t))), tempAm: r1(mean(ski.filter((x) => x.h <= 11).map((x) => x.t))), tempPm: r1(mean(ski.filter((x) => x.h >= 13).map((x) => x.t))),
+        windAvg: r1(mean(ski.map((x) => x.w))), gustMax: r1(maxOf(ski.map((x) => x.g))), cloudAvg: r1(mean(ski.map((x) => x.c))),
+        precipMm: r1(rows.reduce((p, q) => p + (q.pr || 0), 0)) };
+    }
+    return out;
+  } catch (e) { return null; }
+}
+
+async function getMountainWeather(resortId) {
+  const resort = findResortById(resortId);
+  if (!resort) return null;
+  const summit = resort.alt, base = WX_BASE_ALT[resortId] || Math.max(600, resort.alt - 800);
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + `?latitude=${resort.lat},${resort.lat}&longitude=${resort.lon},${resort.lon}&elevation=${summit},${base}`
+    + '&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,snowfall,cloud_cover,freezing_level_height'
+    + `&models=${WX_MODELS.join(',')}&timezone=America%2FEdmonton&forecast_days=4&wind_speed_unit=kmh`;
+  const [omRes, met] = await Promise.all([
+    fetch(url, { headers: { 'User-Agent': 'ski-dashboard-ca/4.3.0 (+https://dashboard.westech.com.hk)' } }),
+    fetchMetNo(resort.lat, resort.lon, summit),
+  ]);
+  if (!omRes.ok) throw new Error(`Open-Meteo ${omRes.status}`);
+  const arr = await omRes.json();
+  const [sum, bas] = Array.isArray(arr) ? arr : [arr];
+  const dates = [...new Set(sum.hourly.time.map((t) => t.slice(0, 10)))].slice(0, 3);
+  const wd = ['日', '一', '二', '三', '四', '五', '六'];
+  const days = dates.map((date) => {
+    const perS = summarizeDay(sum.hourly, WX_MODELS, date);
+    const perB = bas ? summarizeDay(bas.hourly, WX_MODELS, date) : {};
+    return {
+      date, weekday: '週' + wd[new Date(date + 'T12:00:00Z').getUTCDay()],
+      skiHours: `${SKI_H0}:00–${SKI_H1}:00`,
+      summit: consensus(perS, met && met[date] ? met[date] : null),
+      base: consensus(perB, null),
+    };
+  });
+  const used = Object.keys(days[0]?.summit?.perModel || {});
+  return {
+    resortId, name: resort.name, fetchedAt: new Date().toISOString(),
+    elevations: { summitM: summit, baseM: base }, modelsUsed: used, metNorway: !!met,
+    method: '指定山頂／山腳海拔的多模型預報（GEM/HRDPS、ECMWF、GFS、ICON + MET Norway），取中位數並標示分歧。',
+    days,
+  };
+}
+
 async function getNormalizedSnowReport(resort, fetchedAt) {
   const adapter = SNOW_REPORT_ADAPTERS[resort.id] || getUnavailableSnowReport;
   try {
@@ -440,64 +608,141 @@ async function getUnavailableSnowReport(resort, fetchedAt) {
   return report;
 }
 
+// ─── text helpers (v4.3.0) ─────────────────────────────────────────────────
+function htmlToText(html) {
+  return String(html || '')
+    .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<svg[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#0?39;|&apos;/g, "'")
+    .replace(/&sol;/g, '/').replace(/&period;/g, '.').replace(/&comma;/g, ',')
+    .replace(/&colon;/g, ':').replace(/&rsquo;/g, '’').replace(/&#038;/g, '&')
+    .replace(/&deg;/g, '°').replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// Convert a wall-clock time in America/Edmonton to an ISO UTC string (DST-safe).
+function edmontonIso(y, mo, d, h, mi) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  for (const off of [6, 7]) {
+    const t = guess + off * 3600000;
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Edmonton', hourCycle: 'h23',
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(t));
+    const g = (k) => Number(parts.find((x) => x.type === k).value);
+    if (g('year') === y && g('month') === mo && g('day') === d && g('hour') === h && g('minute') === mi) return new Date(t).toISOString();
+  }
+  return null;
+}
+const MONTHS = { january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 };
+function parseEdmontonStamp(text) {
+  // "October 31, 2026 | 10:31 am"  or  "October 31st, 2026 8:18 AM"
+  const m = String(text || '').match(/([A-Z][a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\s*\|?\s*(?:at\s+)?(\d{1,2}):(\d{2})\s*([ap]m)/i);
+  if (!m || !MONTHS[m[1].toLowerCase()]) return null;
+  let h = Number(m[4]) % 12; if (/pm/i.test(m[6])) h += 12;
+  return edmontonIso(Number(m[3]), MONTHS[m[1].toLowerCase()], Number(m[2]), h, Number(m[5]));
+}
+
+// Parse "<n> cm <n> in <Label>" triplets inside a text slice.
+function parseSnowTriplets(slice) {
+  const out = {};
+  for (const m of String(slice).matchAll(/(\d+(?:\.\d+)?)\s*cm\s+[\d.]+\s*in\s+([A-Za-z0-9 ]+?)(?=\s+\d+(?:\.\d+)?\s*cm|\s+Mid Mountain|\s+Note:|$)/g)) {
+    out[m[2].trim().toLowerCase()] = Number(m[1]);
+  }
+  return out;
+}
+// Sunshine layout: "<Label> <n> cm <n> in" (label BEFORE value, unlike Lake Louise)
+function parseLabelFirstSnow(slice) {
+  const out = {};
+  for (const m of String(slice).matchAll(/(24\s*hr|24\s*hours?|7\s*days?|settled base|base|cumulative)\s+(\d+(?:\.\d+)?)\s*cm/gi)) {
+    out[m[1].replace(/\s+/g, ' ').trim().toLowerCase()] = Number(m[2]);
+  }
+  return out;
+}
+function pickKey(o, ...keys) { for (const k of keys) if (o[k] !== undefined) return o[k]; return null; }
+
 async function getSunshineSnowReport(resort, fetchedAt) {
-  const source = { name: 'Sunshine Village official API', type: 'json', url: 'https://www.skibanff.com/wp-json/sunshine/v1/snow-reports', official: true };
+  const source = { name: 'Sunshine Village official Current Conditions', type: 'html', url: 'https://www.skibanff.com/the-mountain/mountain-report/current-conditions', official: true };
   const report = buildBaseSnowReport(resort, fetchedAt, source);
-  const [snow, lifts] = await Promise.all([
-    fetchJson('https://www.skibanff.com/wp-json/sunshine/v1/snow-reports'),
-    fetchJson('https://www.skibanff.com/wp-json/sunshine/v1/lifts'),
-  ]);
-  report.status = 'live';
-  report.updatedAt = isoOrNull(snow.timestamp?.replace(' ', 'T') + '-06:00') || isoOrNull(snow.updatedText);
-  report.metrics.overnightCm = numberOrNull(snow.overnight?.metric);
-  report.metrics.last24hCm = numberOrNull(snow.past24Hours?.metric);
-  report.metrics.last48hCm = null;
-  report.metrics.last7dCm = numberOrNull(snow.historical?.metric || snow.paris_xdays?.metric);
-  report.metrics.baseCm = numberOrNull(snow.settledBase?.metric || snow.paris_base?.metric);
-  report.metrics.seasonCm = numberOrNull(snow.seasonTotal?.metric || snow.paris_snowfall?.metric);
-  report.metrics.liftsOpen = numberOrNull(lifts?.lifts?.open);
-  report.metrics.liftsTotal = numberOrNull(lifts?.lifts?.max);
-  report.metrics.runsOpen = numberOrNull(lifts?.runs?.open);
-  report.metrics.runsTotal = numberOrNull(lifts?.runs?.max);
-  report.metrics.groomedRuns = null;
-  report.rawSummary = cleanHtmlText(snow.summary);
-  report.notes.push('Official JSON endpoint used for snow totals and lift/run status.');
+  const text = htmlToText(await fetchText(source.url, { headers: BROWSER_HEADERS }));
+
+  const upd = text.match(/Current Conditions Updated:\s*[A-Za-z]+,\s*([A-Za-z]+ \d{1,2}(?:st|nd|rd|th)?,\s*\d{4}\s+\d{1,2}:\d{2}\s*[AP]M)/i);
+  report.updatedAt = upd ? parseEdmontonStamp(upd[1]) : null;
+
+  const summary = text.match(/Summary\s+(.+?)\s+Upper Mountain Snow Report/i);
+  if (summary) report.rawSummary = summary[1];
+
+  const up = text.match(/Upper Mountain Snow Report\s+(.+?)\s+Mid Mountain Snow Report/i);
+  const mid = text.match(/Mid Mountain Snow Report\s+(.+?)\s+Extended Forecast/i);
+  if (!up) throw new Error('Upper Mountain Snow Report block not found (page layout changed?)');
+  const U = parseLabelFirstSnow(up[1]);
+  const M = mid ? parseLabelFirstSnow(mid[1]) : {};
+
+  report.metrics.overnightCm = null; // Sunshine does not publish a separate overnight figure
+  report.metrics.last24hCm = pickKey(U, '24hr', '24 hours', '24h');
+  report.metrics.last7dCm = pickKey(U, '7 day', '7 days');
+  report.metrics.baseCm = pickKey(U, 'base', 'settled base');
+  report.metrics.seasonCm = pickKey(U, 'cumulative');
+  report.extras = {
+    upperMountain: { last24hCm: pickKey(U, '24hr', '24 hours'), last7dCm: pickKey(U, '7 day', '7 days'), baseCm: pickKey(U, 'base'), seasonCm: pickKey(U, 'cumulative') },
+    midMountain: { last24hCm: pickKey(M, '24 hours', '24hr'), last7dCm: pickKey(M, '7 days', '7 day'), baseCm: pickKey(M, 'settled base', 'base'), seasonCm: pickKey(M, 'cumulative') },
+  };
+
+  // Official RWDI mountain forecast (freezing level, ridge wind) - resort-side numbers
+  const fc = text.match(/Extended Forecast\s+Forecast updated:\s*(.+?)\s+Weather forecasting data provided by RWDI/i);
+  if (fc) {
+    const days = [];
+    const re = /(Today|Tonight|Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s+(-?\d+)\s*°C\s+\d+\s*°F\s+(High|Low)(?:\s+(-?\d+)\s*°C\s+\d+\s*°F\s+(High|Low))?\s+(.+?)\s+Freezing level:\s*(\d+)\s*m.*?Ridge wind\s+([A-Z]+)\s*:\s*(\d+)\s*km\/h\s+.*?Precipitation:\s*(\w+)/gi;
+    for (const m of fc[1].matchAll(re)) {
+      days.push({ day: m[1], temp1: Number(m[2]), kind1: m[3], temp2: m[4] != null ? Number(m[4]) : null, kind2: m[5] || null, desc: m[6].trim(), freezingLevelM: Number(m[7]), ridgeWindDir: m[8], ridgeWindKmh: Number(m[9]), precip: m[10] });
+    }
+    report.extras.officialForecast = { provider: 'RWDI (via skibanff.com)', updatedText: fc[1].split(/\s+Imperial/)[0], days };
+  }
+
+  const ok = [report.metrics.last24hCm, report.metrics.last7dCm, report.metrics.baseCm, report.metrics.seasonCm].some((v) => v !== null);
+  report.status = ok ? 'live' : 'unavailable';
+  report.notes.push(ok ? '數據來自 Sunshine 官方 Current Conditions 頁（上山雪量為主，中山另見 extras）。' : '頁面已載入但找不到雪量欄位。');
   return report;
 }
 
 async function getLakeLouiseSnowReport(resort, fetchedAt) {
   const source = { name: 'Lake Louise official conditions page', type: 'html', url: 'https://www.skilouise.com/snow-conditions/', official: true };
   const report = buildBaseSnowReport(resort, fetchedAt, source);
-  const html = await fetchText(source.url);
-  const metaDate = html.match(/article:modified_time" content="([^"]+)"/i);
-  report.updatedAt = isoOrNull(metaDate && metaDate[1]);
+  const text = htmlToText(await fetchText(source.url, { headers: BROWSER_HEADERS }));
 
-  const sectionMatch = html.match(/obj-condition-body[\s\S]{0,2000}?<h4 class="obj-title[^>]*>([\s\S]*?)<\/p>/i);
-  if (sectionMatch) report.rawSummary = cleanHtmlText(sectionMatch[1]);
+  const upBlock = text.match(/Upper Mountain Snowfall\s+(.+?)\s+Mid Mountain Snowfall/i);
+  const midBlock = text.match(/Mid Mountain Snowfall\s+(.+?)\s+Note:/i);
+  if (!upBlock) throw new Error('Upper Mountain Snowfall block not found (page layout changed?)');
+  report.updatedAt = parseEdmontonStamp(upBlock[1]);
+  const U = parseSnowTriplets(upBlock[1]);
+  const M = midBlock ? parseSnowTriplets(midBlock[1]) : {};
 
-  const pairs = [...html.matchAll(/<div class="obj-condition-item[\s\S]*?<strong[^>]*>([^<]+)<\/strong><small[^>]*>(cm|m|in)<\/small>[\s\S]*?<span class="obj-text d-block">\s*([^<]+?)\s*<\/span>/gi)]
-    .map((m) => ({ value: numberOrNull(m[1]), label: cleanHtmlText(m[3]) }));
-  for (const pair of pairs) {
-    const label = (pair.label || '').toLowerCase();
-    if (label.includes('overnight')) report.metrics.overnightCm = pair.value;
-    else if (label.includes('24')) report.metrics.last24hCm = pair.value;
-    else if (label.includes('48')) report.metrics.last48hCm = pair.value;
-    else if (label.includes('7 day')) report.metrics.last7dCm = pair.value;
-    else if (label.includes('snow base')) report.metrics.baseCm = pair.value;
-    else if (label.includes('season')) report.metrics.seasonCm = pair.value;
-  }
+  report.metrics.overnightCm = pickKey(U, 'overnight');
+  report.metrics.last24hCm = pickKey(U, 'last 24 hours');
+  report.metrics.last48hCm = pickKey(U, 'last 48 hours');
+  report.metrics.last7dCm = pickKey(U, 'last 7 days');
+  report.metrics.baseCm = pickKey(U, 'base');
+  report.metrics.seasonCm = pickKey(U, 'this season');
+  report.extras = {
+    upperMountain: { overnightCm: pickKey(U, 'overnight'), last24hCm: pickKey(U, 'last 24 hours'), last48hCm: pickKey(U, 'last 48 hours'), last7dCm: pickKey(U, 'last 7 days'), baseCm: pickKey(U, 'base'), seasonCm: pickKey(U, 'this season') },
+    midMountain: { overnightCm: pickKey(M, 'overnight'), last24hCm: pickKey(M, 'last 24 hours'), last48hCm: pickKey(M, 'last 48 hours'), last7dCm: pickKey(M, 'last 7 days'), baseCm: pickKey(M, 'base'), seasonCm: pickKey(M, 'this season') },
+  };
 
-  const textSummary = cleanHtmlText(html);
-  const liftsMatch = textSummary && textSummary.match(/All\s+(\d+)\s+lifts\s+are\s+spinning/i);
-  const runsMatch = textSummary && textSummary.match(/(\d+)\s+open\s+runs/i);
-  if (liftsMatch) {
-    report.metrics.liftsOpen = Number(liftsMatch[1]);
-    report.metrics.liftsTotal = Number(liftsMatch[1]);
-  }
-  if (runsMatch) report.metrics.runsOpen = Number(runsMatch[1]);
-  report.status = (report.metrics.overnightCm !== null || report.metrics.last24hCm !== null || report.metrics.baseCm !== null) ? 'live' : 'unavailable';
-  if (report.status !== 'live') report.notes.push('Official Lake Louise page loaded, but expected condition metrics were not detected.');
-  else report.notes.push('Parsed from official Lake Louise conditions page HTML.');
+  const lr = text.match(/(\d+)\s+Lifts Open\s+(\d+)\s+Runs Open\s+(\d+)\s+Groomed/i);
+  if (lr) { report.metrics.liftsOpen = Number(lr[1]); report.metrics.runsOpen = Number(lr[2]); report.metrics.groomedRuns = Number(lr[3]); }
+  const status = text.match(/LIFT \/ RUN STATUS\s+(.+?)\s+\d+\s+Lifts Open/i);
+  const opening = text.match(/(We[’']re Opening [^.]*\.)/i);
+  const hours = text.match(/(Winter lift hours are [^.]*\.)/i);
+  const whatsOpen = text.match(/What[’']s Open on [A-Za-z]+\s+(First chair is at [^.]*\.\s*[^.]*Juniper[^.]*\.)/i) || text.match(/(First chair is at [^:]*:\s*Skiing and snowboarding:[^.]*\.)/i);
+  const parts = [];
+  if (opening) parts.push(opening[1].trim());
+  if (whatsOpen) parts.push(whatsOpen[1].replace(/\s+/g, ' ').trim());
+  if (hours) parts.push(hours[1].trim());
+  if (status) parts.push(status[1].trim());
+  report.rawSummary = parts.join(' ｜ ') || null;
+  report.extras.openingNotice = parts.length ? parts : null;
+
+  const ok = report.metrics.overnightCm !== null || report.metrics.last24hCm !== null || report.metrics.baseCm !== null;
+  report.status = ok ? 'live' : 'unavailable';
+  report.notes.push(ok ? '數據來自 Lake Louise 官方頁（上山 Upper Mountain 為主，中山另見 extras）。' : '頁面已載入但找不到雪量欄位。');
   return report;
 }
 
