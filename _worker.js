@@ -35,11 +35,11 @@ const CITY_RESORTS = {
     resorts: [
       { id: 'louise',    name: 'Lake Louise',         emoji: '🏔️', lat: 51.4254, lon: -116.1773, alt: 2637, dist: 153 },
       { id: 'sunshine',  name: 'Sunshine Village',    emoji: '☀️', lat: 51.0630, lon: -115.7729, alt: 2730, dist: 118 },
-      { id: 'nakiska',   name: 'Nakiska',             emoji: '🎿', lat: 50.9406, lon: -115.1531, alt: 2258, dist:  77 },
+      { id: 'nakiska',   name: 'Nakiska',             emoji: '🎿', lat: 50.9406, lon: -115.1531, alt: 2258, dist:  77, website: 'skinakiska.com' },
       { id: 'norquay',   name: 'Mt Norquay',          emoji: '⛷️', lat: 51.2035, lon: -115.5622, alt: 2133, dist: 106 },
       { id: 'castle',    name: 'Castle Mountain',     emoji: '🏰', lat: 49.4665, lon: -114.4073, alt: 2275, dist: 194 },
-      { id: 'fernie',    name: 'Fernie Alpine Resort',emoji: '🦅', lat: 49.4577, lon: -115.0881, alt: 2068, dist: 189 },
-      { id: 'kickhorse', name: 'Kicking Horse',       emoji: '🐴', lat: 51.3000, lon: -117.0522, alt: 2450, dist: 205 },
+      { id: 'fernie',    name: 'Fernie Alpine Resort',emoji: '🦅', lat: 49.4577, lon: -115.0881, alt: 2068, dist: 189, website: 'skifernie.com' },
+      { id: 'kickhorse', name: 'Kicking Horse',       emoji: '🐴', lat: 51.3000, lon: -117.0522, alt: 2450, dist: 205, website: 'kickinghorseresort.com' },
       { id: 'panorama',  name: 'Panorama Mountain',   emoji: '🌄', lat: 50.4625, lon: -116.2355, alt: 2395, dist: 165 },
     ]
   },
@@ -274,7 +274,7 @@ async function handleApi(request, env, url) {
     const keys = await KV.list({ prefix: 'push:' });
     const lastCheck = await KV.get('meta:lastCheck');
     return json({
-      version: 'v4.3.0',
+      version: 'v4.3.1',
       subscribers: keys.keys.length,
       lastCheck,
       resorts: RESORTS.map(r => r.name),
@@ -361,7 +361,8 @@ function buildBaseSnowReport(resort, fetchedAt, source) {
 }
 
 const BROWSER_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+  // v4.3.1: identify ourselves honestly instead of imitating a browser
+  'User-Agent': 'ski-dashboard-ca/4.3.1 (+https://dashboard.westech.com.hk)',
   'Accept-Language': 'en-CA,en;q=0.9',
 };
 
@@ -520,7 +521,7 @@ function consensus(per, extraMet) {
 async function fetchMetNo(lat, lon, alt) {
   try {
     const res = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&altitude=${Math.round(alt)}`, {
-      headers: { 'User-Agent': 'ski-dashboard-ca/4.3.0 (+https://dashboard.westech.com.hk; west.wong@westech.com.hk)' },
+      headers: { 'User-Agent': 'ski-dashboard-ca/4.3.1 (+https://dashboard.westech.com.hk)' },
     });
     if (!res.ok) return null;
     const j = await res.json();
@@ -553,7 +554,7 @@ async function getMountainWeather(resortId) {
     + '&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,snowfall,cloud_cover,freezing_level_height'
     + `&models=${WX_MODELS.join(',')}&timezone=America%2FEdmonton&forecast_days=4&wind_speed_unit=kmh`;
   const [omRes, met] = await Promise.all([
-    fetch(url, { headers: { 'User-Agent': 'ski-dashboard-ca/4.3.0 (+https://dashboard.westech.com.hk)' } }),
+    fetch(url, { headers: { 'User-Agent': 'ski-dashboard-ca/4.3.1 (+https://dashboard.westech.com.hk)' } }),
     fetchMetNo(resort.lat, resort.lon, summit),
   ]);
   if (!omRes.ok) throw new Error(`Open-Meteo ${omRes.status}`);
@@ -747,46 +748,36 @@ async function getLakeLouiseSnowReport(resort, fetchedAt) {
 }
 
 async function getNorquaySnowReport(resort, fetchedAt) {
-  const source = { name: 'Mt Norquay official conditions page', type: 'html', url: 'https://banffnorquay.com/winter/conditions/', official: true };
+  // v4.3.1: Mt Norquay's website terms (banffnorquay.com/terms-conditions/ §12) prohibit scraping, so this
+  // adapter no longer fetches anything. The card shows "unavailable" and links to the official page.
+  const source = { name: 'Mt Norquay official conditions page', type: 'link', url: 'https://banffnorquay.com/conditions/', official: true };
   const report = buildBaseSnowReport(resort, fetchedAt, source);
-  const html = await fetchText(source.url);
-  const updatedMatch = html.match(/Conditions update for ([^.]+\.)/i);
-  report.updatedAt = isoOrNull(updatedMatch ? updatedMatch[1].replace(/\.$/, '') : null);
-  const summaryMatch = html.match(/<h3><b>Daily Update<\/b><\/h3>[\s\S]*?<p[^>]*><b>Conditions update for[\s\S]*?<\/p>([\s\S]*?)<\/div>/i);
-  if (summaryMatch) report.rawSummary = cleanHtmlText(summaryMatch[1]);
-
-  const snowValues = [...html.matchAll(/<p class="snow-height">([^<]+)<\/p>\s*<p class="snow-details">([^<]+)<\/p>/gi)].map((m) => ({ value: numberOrNull(m[1]), label: cleanHtmlText(m[2]) }));
-  for (const pair of snowValues) {
-    const label = (pair.label || '').toLowerCase();
-    if (label.includes('overnight')) report.metrics.overnightCm = pair.value;
-    else if (label.includes('24')) report.metrics.last24hCm = pair.value;
-    else if (label.includes('7')) report.metrics.last7dCm = pair.value;
-    else if (label.includes('lower mountain')) report.metrics.baseCm = pair.value;
-    else if (label.includes('year to date')) report.metrics.seasonCm = pair.value;
-  }
-  const text = cleanHtmlText(html) || '';
-  if (/all lifts are running/i.test(text)) {
-    report.metrics.liftsOpen = 6;
-    report.metrics.liftsTotal = 6;
-    report.notes.push('Lift count inferred from current Mt Norquay winter lift network when official copy says all lifts are running.');
-  }
-  if (/groomed runs are in excellent shape/i.test(text)) {
-    report.notes.push('Official update indicates groomed runs are in excellent shape, but no groomed-run count is published on page.');
-  }
-  report.status = (report.metrics.overnightCm !== null || report.metrics.baseCm !== null) ? 'live' : 'unavailable';
-  if (report.status !== 'live') report.notes.push('Official Mt Norquay page loaded, but expected snow metrics were not detected.');
+  report.notes.push('Mt Norquay terms do not allow automated collection. Open the official page for current conditions.');
   return report;
 }
 
 async function getCastleSnowReport(resort, fetchedAt) {
-  const source = { name: 'Castle Mountain official conditions page', type: 'html', url: 'https://www.skicastle.ca/snow-report-conditions-new/', official: true };
+  // v4.3.1: the old /snow-report-conditions-new/ page hid its values; /snowreport/ publishes them.
+  const source = { name: 'Castle Mountain official snow report', type: 'html', url: 'https://www.skicastle.ca/snowreport/', official: true };
   const report = buildBaseSnowReport(resort, fetchedAt, source);
-  const html = await fetchText(source.url);
-  const text = cleanHtmlText(html) || '';
-  const updated = text.match(/Last updated:\s*([^|]+?)\s+MT/i);
-  report.updatedAt = isoOrNull(updated && updated[1] && !updated[1].includes('-') ? updated[1] : null);
-  report.rawSummary = 'Official Castle Mountain conditions page is reachable, but current snow/lift details are withheld behind a password-protected block and exposed values are blank.';
-  report.notes.push('Official source exists, but published values are blank / password-gated at fetch time. Returning unavailable rather than inventing data.');
+  const text = cleanHtmlText(await fetchText(source.url, { headers: BROWSER_HEADERS })) || '';
+  const at = text.search(/Mid Mountain/i);
+  const table = at >= 0 ? text.slice(at) : text;   // the detailed table: label first, then number
+  const num = (re) => { const m = table.match(re); return m ? numberOrNull(m[1]) : null; };
+  report.metrics.overnightCm = num(/Fresh Snow \(12 hrs\)\s+(\d+(?:\.\d+)?)/i);
+  report.metrics.last24hCm = num(/Fresh Snow \(24 hrs\)\s+(\d+(?:\.\d+)?)/i);
+  report.metrics.last48hCm = num(/Fresh Snow \(48 hrs\)\s+(\d+(?:\.\d+)?)/i);
+  report.metrics.last7dCm = num(/Last 7 days\s+(\d+(?:\.\d+)?)/i);
+  report.metrics.seasonCm = num(/Total Snowfall this season\s+(\d+(?:\.\d+)?)/i);
+  report.metrics.baseCm = num(/Snow Base\s+(\d+(?:\.\d+)?)/i);
+  const lifts = text.match(/(\d+) of (\d+) lifts open/i);
+  if (lifts) { report.metrics.liftsOpen = Number(lifts[1]); report.metrics.liftsTotal = Number(lifts[2]); }
+  const runs = text.match(/(\d+) of (\d+) Trails open/i);
+  if (runs) { report.metrics.runsOpen = Number(runs[1]); report.metrics.runsTotal = Number(runs[2]); }
+  const u = text.match(/Last updated:\s*(\d{4})-(\d{2})-(\d{2})\s*-\s*(\d{2}):(\d{2})\s*MT/i);
+  if (u) report.updatedAt = edmontonIso(+u[1], +u[2], +u[3], +u[4], +u[5]);
+  report.status = (report.metrics.baseCm !== null || report.metrics.last24hCm !== null) ? 'live' : 'unavailable';
+  if (report.status !== 'live') report.notes.push('Official Castle page loaded, but expected snow metrics were not detected.');
   return report;
 }
 
